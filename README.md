@@ -1,0 +1,1 @@
+# tg-self-managed-logscale-aws
