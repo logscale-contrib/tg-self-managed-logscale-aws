@@ -10,9 +10,8 @@
 # needs to deploy a different module version, it should redefine this block with a different ref to override the
 # deployed version.
 terraform {
-  source = "${local.base_source_url}?version=3.16.0"
+  source = "${local.base_source_url}" #?version=5.5.0"
 }
-
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Locals are named constants that are reusable within the configuration.
@@ -26,9 +25,28 @@ locals {
 
   # Expose the base source URL so different versions of the module can be deployed in different environments. This will
   # be used to construct the terraform block in the child terragrunt configurations.
-  base_source_url = "tfr:///terraform-aws-modules/vpc/aws"
+  base_source_url = "git::git@github.com:logscale-contrib/tf-self-managed-logscale-aws-k8s-cluster.git"
+
+  # Automatically load account-level variables
+  account_vars = read_terragrunt_config(find_in_parent_folders("account.hcl"))
+
+  # Automatically load region-level variables
+  region_vars = read_terragrunt_config(find_in_parent_folders("region.hcl"))
+
+  # Automatically load region-level variables
+  admin = read_terragrunt_config(find_in_parent_folders("admin.hcl"))
+
+  # Extract the variables we need for easy access
+  account_name = local.account_vars.locals.account_name
+  account_id   = local.account_vars.locals.aws_account_id
+  aws_region   = local.region_vars.locals.aws_region
+
+  aws_admin_arn = local.admin.locals.aws_admin_arn
 }
 
+dependency "vpc" {
+  config_path = "${get_terragrunt_dir()}/../vpc/"
+}
 
 # ---------------------------------------------------------------------------------------------------------------------
 # MODULE PARAMETERS
@@ -36,33 +54,9 @@ locals {
 # environments.
 # ---------------------------------------------------------------------------------------------------------------------
 inputs = {
-  name = "logscale_${local.env}"
-  cidr = "10.0.0.0/16"
-
-  azs             = ["us-east-2a", "us-east-2b", "us-east-2c"]
-  private_subnets = ["10.0.0.0/20", "10.0.16.0/20", "10.0.32.0/20"]
-  public_subnets  = ["10.0.48.0/20", "10.0.64.0/20", "10.0.80.0/20"]
-
-  enable_nat_gateway     = true
-  enable_vpn_gateway     = false
-  single_nat_gateway     = true
-  enable_dns_hostnames   = true
-  one_nat_gateway_per_az = false
-
-  public_subnet_tags = {
-    "kubernetes.io/cluster/logscale_${local.env}"  = "shared"
-    "kubernetes.io/role/elb"                       = "1"
-    "karpenter.sh/discovery/logscale_${local.env}" = local.env
-  }
-
-  private_subnet_tags = {
-    "kubernetes.io/cluster/logscale_${local.env}"  = "shared"
-    "kubernetes.io/role/internal-elb"              = "1"
-    "karpenter.sh/discovery/logscale_${local.env}" = local.env
-  }
-
-  tags = {
-    Terraform   = "true"
-    Environment = local.env
-  }
+  uniqueName = "logscale_${local.env}"
+  environmen = local.env
+  aws_admin_arn = local.aws_admin_arn
+  vpc_id = dependency.vpc.outputs.vpc_id
+  vpc_public_subnets = dependency.vpc.outputs.public_subnets
 }
