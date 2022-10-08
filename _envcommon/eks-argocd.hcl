@@ -25,7 +25,7 @@ locals {
 
   # Expose the base source URL so different versions of the module can be deployed in different environments. This will
   # be used to construct the terraform block in the child terragrunt configurations.
-  module_vars = read_terragrunt_config(find_in_parent_folders("modules.hcl"))
+  module_vars   = read_terragrunt_config(find_in_parent_folders("modules.hcl"))
   source_module = local.module_vars.locals.aws_k8s_argocd
 
   # Automatically load account-level variables
@@ -42,8 +42,8 @@ locals {
   account_id   = local.account_vars.locals.aws_account_id
   aws_region   = local.region_vars.locals.aws_region
 
-  dns = read_terragrunt_config(find_in_parent_folders("dns.hcl"))
-  domain_name   = local.dns.locals.domain_name
+  dns         = read_terragrunt_config(find_in_parent_folders("dns.hcl"))
+  domain_name = local.dns.locals.domain_name
 
   host_name = "argocd"
 
@@ -62,14 +62,14 @@ dependency "acm_ui" {
 # environments.
 # ---------------------------------------------------------------------------------------------------------------------
 inputs = {
-  uniqueName = "logscale_${local.env}"
-  eks_cluster_id = dependency.eks.outputs.eks_cluster_id
-  eks_endpoint = dependency.eks.outputs.eks_endpoint
+  uniqueName                             = "logscale_${local.env}"
+  eks_cluster_id                         = dependency.eks.outputs.eks_cluster_id
+  eks_endpoint                           = dependency.eks.outputs.eks_endpoint
   eks_cluster_certificate_authority_data = dependency.eks.outputs.eks_cluster_certificate_authority_data
-  eks_oidc_provider_arn=dependency.eks.outputs.eks_oidc_provider_arn
+  eks_oidc_provider_arn                  = dependency.eks.outputs.eks_oidc_provider_arn
 
-  domain_name=local.domain_name
-  host_name = local.host_name
-  cert_arn = dependency.acm_ui.outputs.acm_certificate_arn
+  domain_name = local.domain_name
+  host_name   = local.host_name
+  cert_arn    = dependency.acm_ui.outputs.acm_certificate_arn
 
 }

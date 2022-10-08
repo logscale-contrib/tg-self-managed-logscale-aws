@@ -19,7 +19,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 locals {
   # Automatically load modules variables
-  module_vars = read_terragrunt_config(find_in_parent_folders("modules.hcl"))
+  module_vars   = read_terragrunt_config(find_in_parent_folders("modules.hcl"))
   source_module = local.module_vars.locals.vpc
 
   # Automatically load environment-level variables

@@ -25,7 +25,7 @@ locals {
 
   # Expose the base source URL so different versions of the module can be deployed in different environments. This will
   # be used to construct the terraform block in the child terragrunt configurations.
-  module_vars = read_terragrunt_config(find_in_parent_folders("modules.hcl"))
+  module_vars   = read_terragrunt_config(find_in_parent_folders("modules.hcl"))
   source_module = local.module_vars.locals.aws_k8s_helm_w_iam
 
   # Automatically load account-level variables
@@ -48,7 +48,7 @@ dependency "eks" {
   config_path = "${get_terragrunt_dir()}/../eks/"
 }
 dependency "eks_argocd" {
-  config_path = "${get_terragrunt_dir()}/../eks-argocd/"
+  config_path  = "${get_terragrunt_dir()}/../eks-argocd/"
   skip_outputs = true
 }
 
@@ -62,14 +62,14 @@ inputs = {
   uniqueName = "logscale_${local.env}"
 
   attach_ebs_csi_policy = true
-  
-  repository = "https://kubernetes-sigs.github.io/aws-ebs-csi-driver"
-  release = "ebs-csi"
-  chart = "aws-ebs-csi-driver"
-  chart_version = "2.10.1"
-  namespace = "kube-system"
+
+  repository       = "https://kubernetes-sigs.github.io/aws-ebs-csi-driver"
+  release          = "ebs-csi"
+  chart            = "aws-ebs-csi-driver"
+  chart_version    = "2.10.1"
+  namespace        = "kube-system"
   create_namespace = false
-  sa = "ebs-csi-controller-sa"
+  sa               = "ebs-csi-controller-sa"
 
   values = [<<EOF
 controller:
@@ -103,9 +103,9 @@ EOF
 
   value_arn = "controller.serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
 
-  eks_cluster_id = dependency.eks.outputs.eks_cluster_id
-  eks_endpoint = dependency.eks.outputs.eks_endpoint
+  eks_cluster_id                         = dependency.eks.outputs.eks_cluster_id
+  eks_endpoint                           = dependency.eks.outputs.eks_endpoint
   eks_cluster_certificate_authority_data = dependency.eks.outputs.eks_cluster_certificate_authority_data
-  eks_oidc_provider_arn=dependency.eks.outputs.eks_oidc_provider_arn
+  eks_oidc_provider_arn                  = dependency.eks.outputs.eks_oidc_provider_arn
 
 }

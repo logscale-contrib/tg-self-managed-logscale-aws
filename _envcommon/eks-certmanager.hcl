@@ -26,7 +26,7 @@ locals {
 
   # Expose the base source URL so different versions of the module can be deployed in different environments. This will
   # be used to construct the terraform block in the child terragrunt configurations.
-  module_vars = read_terragrunt_config(find_in_parent_folders("modules.hcl"))
+  module_vars   = read_terragrunt_config(find_in_parent_folders("modules.hcl"))
   source_module = local.module_vars.locals.aws_k8s_helm_w_iam
 
   # Automatically load account-level variables
@@ -45,7 +45,7 @@ locals {
   account_id   = local.account_vars.locals.aws_account_id
   aws_region   = local.region_vars.locals.aws_region
 
-  zone_id   = local.dns.locals.zone_id
+  zone_id = local.dns.locals.zone_id
 
 }
 
@@ -54,7 +54,7 @@ dependency "eks" {
 }
 
 dependency "externaldns" {
-  config_path = "${get_terragrunt_dir()}/../eks-externaldns/"
+  config_path  = "${get_terragrunt_dir()}/../eks-externaldns/"
   skip_outputs = true
 }
 
@@ -66,16 +66,16 @@ dependency "externaldns" {
 # ---------------------------------------------------------------------------------------------------------------------
 inputs = {
   uniqueName = "logscale_${local.env}"
-  
-  attach_cert_manager_policy=true
 
-  repository = "https://charts.jetstack.io"
-  release = "main"
-  chart = "cert-manager"
-  chart_version = "1.9.1"
-  namespace = "cert-manager"
+  attach_cert_manager_policy = true
+
+  repository       = "https://charts.jetstack.io"
+  release          = "main"
+  chart            = "cert-manager"
+  chart_version    = "1.9.1"
+  namespace        = "cert-manager"
   create_namespace = true
-  sa = "cert-manager"
+  sa               = "cert-manager"
 
   values = [<<EOF
 topologySpreadConstraints:
@@ -103,10 +103,10 @@ EOF
 
   value_arn = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
 
-  eks_cluster_id = dependency.eks.outputs.eks_cluster_id
-  eks_endpoint = dependency.eks.outputs.eks_endpoint
+  eks_cluster_id                         = dependency.eks.outputs.eks_cluster_id
+  eks_endpoint                           = dependency.eks.outputs.eks_endpoint
   eks_cluster_certificate_authority_data = dependency.eks.outputs.eks_cluster_certificate_authority_data
-  eks_oidc_provider_arn=dependency.eks.outputs.eks_oidc_provider_arn
+  eks_oidc_provider_arn                  = dependency.eks.outputs.eks_oidc_provider_arn
 
   zone_id = local.zone_id
 }

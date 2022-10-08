@@ -23,9 +23,9 @@ locals {
   # Extract out common variables for reuse
   env = local.environment_vars.locals.environment
 
-# Expose the base source URL so different versions of the module can be deployed in different environments. This will
+  # Expose the base source URL so different versions of the module can be deployed in different environments. This will
   # be used to construct the terraform block in the child terragrunt configurations.
-  module_vars = read_terragrunt_config(find_in_parent_folders("modules.hcl"))
+  module_vars   = read_terragrunt_config(find_in_parent_folders("modules.hcl"))
   source_module = local.module_vars.locals.eks
 
   # Automatically load account-level variables
@@ -55,9 +55,9 @@ dependency "vpc" {
 # environments.
 # ---------------------------------------------------------------------------------------------------------------------
 inputs = {
-  uniqueName = "logscale_${local.env}"
-  environmen = local.env
-  aws_admin_arn = local.aws_admin_arn
-  vpc_id = dependency.vpc.outputs.vpc_id
+  uniqueName         = "logscale_${local.env}"
+  environmen         = local.env
+  aws_admin_arn      = local.aws_admin_arn
+  vpc_id             = dependency.vpc.outputs.vpc_id
   vpc_public_subnets = dependency.vpc.outputs.public_subnets
 }

@@ -24,7 +24,7 @@ locals {
 
   # Expose the base source URL so different versions of the module can be deployed in different environments. This will
   # be used to construct the terraform block in the child terragrunt configurations.
-  module_vars = read_terragrunt_config(find_in_parent_folders("modules.hcl"))
+  module_vars   = read_terragrunt_config(find_in_parent_folders("modules.hcl"))
   source_module = local.module_vars.locals.eks_linkerd
 
   # Automatically load account-level variables
@@ -53,9 +53,9 @@ dependency "eks" {
 # environments.
 # ---------------------------------------------------------------------------------------------------------------------
 inputs = {
-  eks_cluster_id = dependency.eks.outputs.eks_cluster_id
-  eks_endpoint = dependency.eks.outputs.eks_endpoint
+  eks_cluster_id                         = dependency.eks.outputs.eks_cluster_id
+  eks_endpoint                           = dependency.eks.outputs.eks_endpoint
   eks_cluster_certificate_authority_data = dependency.eks.outputs.eks_cluster_certificate_authority_data
-  eks_oidc_provider_arn=dependency.eks.outputs.eks_oidc_provider_arn
+  eks_oidc_provider_arn                  = dependency.eks.outputs.eks_oidc_provider_arn
 
 }
