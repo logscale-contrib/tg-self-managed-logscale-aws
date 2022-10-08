@@ -10,9 +10,8 @@
 # needs to deploy a different module version, it should redefine this block with a different ref to override the
 # deployed version.
 terraform {
-  source = "${local.base_source_url}" #?version=5.5.0"
+  source = "${local.source_module.base_url}${local.source_module.version}"
 }
-
 # ---------------------------------------------------------------------------------------------------------------------
 # Locals are named constants that are reusable within the configuration.
 # ---------------------------------------------------------------------------------------------------------------------
@@ -25,7 +24,8 @@ locals {
 
   # Expose the base source URL so different versions of the module can be deployed in different environments. This will
   # be used to construct the terraform block in the child terragrunt configurations.
-  base_source_url = "git::git@github.com:logscale-contrib/tf-self-managed-logscale-aws-k8s-linkerd2.git"
+  module_vars = read_terragrunt_config(find_in_parent_folders("modules.hcl"))
+  source_module = local.module_vars.locals.eks_linkerd
 
   # Automatically load account-level variables
   account_vars = read_terragrunt_config(find_in_parent_folders("account.hcl"))
@@ -45,10 +45,6 @@ locals {
 
 dependency "eks" {
   config_path = "${get_terragrunt_dir()}/../eks/"
-}
-dependency "certmanager" {
-  config_path = "${get_terragrunt_dir()}/../eks-certmanager/"
-  skip_outputs = true
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

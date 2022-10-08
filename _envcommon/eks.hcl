@@ -10,7 +10,7 @@
 # needs to deploy a different module version, it should redefine this block with a different ref to override the
 # deployed version.
 terraform {
-  source = "${local.base_source_url}" #?version=5.5.0"
+  source = "${local.source_module.base_url}${local.source_module.version}"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -23,9 +23,10 @@ locals {
   # Extract out common variables for reuse
   env = local.environment_vars.locals.environment
 
-  # Expose the base source URL so different versions of the module can be deployed in different environments. This will
+# Expose the base source URL so different versions of the module can be deployed in different environments. This will
   # be used to construct the terraform block in the child terragrunt configurations.
-  base_source_url = "git::git@github.com:logscale-contrib/tf-self-managed-logscale-aws-k8s-cluster.git"
+  module_vars = read_terragrunt_config(find_in_parent_folders("modules.hcl"))
+  source_module = local.module_vars.locals.eks
 
   # Automatically load account-level variables
   account_vars = read_terragrunt_config(find_in_parent_folders("account.hcl"))
