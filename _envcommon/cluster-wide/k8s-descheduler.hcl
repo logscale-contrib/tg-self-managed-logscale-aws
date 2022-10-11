@@ -62,9 +62,9 @@ inputs = {
   uniqueName = "logscale-${local.env}"
 
 
-  repository       = "https://kubernetes-sigs.github.io/otel-operator"
-  release          = "otel-operator"
-  chart            = "otel-operator"
+  repository       = "https://kubernetes-sigs.github.io/descheduler"
+  release          = "descheduler"
+  chart            = "descheduler"
   chart_version    = "0.25.*"
   namespace        = "kube-system"
   create_namespace = false

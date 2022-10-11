@@ -51,6 +51,9 @@ locals {
 dependency "eks" {
   config_path = "${get_terragrunt_dir()}/../../platform/eks/"
 }
+dependency "alb" {
+  config_path = "${get_terragrunt_dir()}/../../platform/alb/"
+}
 dependency "argocd_project" {
   config_path  = "${get_terragrunt_dir()}/../../cluster-wide/argocd-project/"
   skip_outputs = true
