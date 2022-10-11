@@ -66,12 +66,13 @@ inputs = {
   repository       = "https://kubernetes-sigs.github.io/aws-ebs-csi-driver"
   release          = "ebs-csi"
   chart            = "aws-ebs-csi-driver"
-  chart_version    = "2.10.1"
+  chart_version    = "2.10.*"
   namespace        = "kube-system"
   create_namespace = false
   sa               = "ebs-csi-controller-sa"
+  project          = "cluster-wide"
 
-  values = [<<EOF
+  values = yamldecode(<<EOF
 controller:
     topologySpreadConstraints:
     - maxSkew: 1
@@ -98,8 +99,9 @@ node:
     tolerations:
     #Any tolerations used to control pod deployment should be here
     - operator: "Exists"
-EOF 
-  ]
+EOF
+  )
+
 
   value_arn = "controller.serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
 

@@ -70,12 +70,13 @@ inputs = {
   repository       = "https://charts.bitnami.com/bitnami"
   release          = "main"
   chart            = "external-dns"
-  chart_version    = "6.5.1"
+  chart_version    = "6.5.*"
   namespace        = "external-dns"
   create_namespace = true
   sa               = "external-dns"
+  project          = "cluster-wide"
 
-  values = [<<EOF
+  values = yamldecode(<<EOF
 topologySpreadConstraints:
   - maxSkew: 1
     topologyKey: topology.kubernetes.io/zone
@@ -83,13 +84,11 @@ topologySpreadConstraints:
 
 replicaCount: 2
 serviceAccount:
-  create: true
   name: external-dns
 txtOwnerId: "logscale_${local.env}"
 
-
 EOF 
-  ]
+  )
 
   value_arn = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
 

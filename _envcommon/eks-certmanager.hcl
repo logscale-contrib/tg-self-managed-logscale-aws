@@ -72,12 +72,13 @@ inputs = {
   repository       = "https://charts.jetstack.io"
   release          = "main"
   chart            = "cert-manager"
-  chart_version    = "1.9.1"
+  chart_version    = "1.9.*"
   namespace        = "cert-manager"
   create_namespace = true
   sa               = "cert-manager"
+  project          = "cluster-wide"
 
-  values = [<<EOF
+  values = yamldecode(<<EOF
 topologySpreadConstraints:
   - maxSkew: 1
     topologyKey: topology.kubernetes.io/zone
@@ -99,7 +100,7 @@ admissionWebhooks:
 
 
 EOF 
-  ]
+  )
 
   value_arn = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
 

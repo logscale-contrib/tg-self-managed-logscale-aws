@@ -12,6 +12,7 @@
 terraform {
   source = "${local.source_module.base_url}${local.source_module.version}"
 }
+
 # ---------------------------------------------------------------------------------------------------------------------
 # Locals are named constants that are reusable within the configuration.
 # ---------------------------------------------------------------------------------------------------------------------
@@ -25,7 +26,7 @@ locals {
   # Expose the base source URL so different versions of the module can be deployed in different environments. This will
   # be used to construct the terraform block in the child terragrunt configurations.
   module_vars   = read_terragrunt_config(find_in_parent_folders("modules.hcl"))
-  source_module = local.module_vars.locals.eks_linkerd
+  source_module = local.module_vars.locals.k8s_helm
 
   # Automatically load account-level variables
   account_vars = read_terragrunt_config(find_in_parent_folders("account.hcl"))
@@ -46,10 +47,11 @@ locals {
 dependency "eks" {
   config_path = "${get_terragrunt_dir()}/../eks/"
 }
-dependency "eks-karpenter" {
-  config_path  = "${get_terragrunt_dir()}/../eks-karpenter/"
+dependency "eks_argocd" {
+  config_path  = "${get_terragrunt_dir()}/../eks-argocd/"
   skip_outputs = true
 }
+
 
 # ---------------------------------------------------------------------------------------------------------------------
 # MODULE PARAMETERS
@@ -57,6 +59,22 @@ dependency "eks-karpenter" {
 # environments.
 # ---------------------------------------------------------------------------------------------------------------------
 inputs = {
+  uniqueName = "logscale_${local.env}"
+
+
+  repository       = "https://kubernetes-sigs.github.io/otel-operator"
+  release          = "otel-operator"
+  chart            = "otel-operator"
+  chart_version    = "0.25.*"
+  namespace        = "kube-system"
+  create_namespace = false
+  project          = "cluster-wide"
+
+    values = yamldecode(<<EOF
+novalues: "No values provided"
+EOF
+)
+
   eks_cluster_id                         = dependency.eks.outputs.eks_cluster_id
   eks_endpoint                           = dependency.eks.outputs.eks_endpoint
   eks_cluster_certificate_authority_data = dependency.eks.outputs.eks_cluster_certificate_authority_data

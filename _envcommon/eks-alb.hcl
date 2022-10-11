@@ -70,12 +70,13 @@ inputs = {
   repository       = "https://aws.github.io/eks-charts"
   release          = "main"
   chart            = "aws-load-balancer-controller"
-  chart_version    = "1.4.4"
+  chart_version    = "1.4.*"
   namespace        = "alb-manager"
   create_namespace = true
   sa               = "main-aws-load-balancer-controller"
+  project          = "cluster-wide"
 
-  values = [<<EOF
+  values = yamldecode(<<EOF
 topologySpreadConstraints:
   - maxSkew: 1
     topologyKey: topology.kubernetes.io/zone
@@ -93,7 +94,7 @@ podDisruptionBudget:
     maxUnavailable: 1
 
 EOF 
-  ]
+  )
 
   value_arn = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
 

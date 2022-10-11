@@ -52,6 +52,10 @@ locals {
 dependency "eks" {
   config_path = "${get_terragrunt_dir()}/../eks/"
 }
+dependency "eks-karpenter" {
+  config_path  = "${get_terragrunt_dir()}/../eks-karpenter/"
+  skip_outputs = true
+}
 dependency "acm_ui" {
   config_path = "${get_terragrunt_dir()}/../acm-ui/"
 }
@@ -71,5 +75,5 @@ inputs = {
   domain_name = local.domain_name
   host_name   = local.host_name
   cert_arn    = dependency.acm_ui.outputs.acm_certificate_arn
-
+  lbgroup = "logscale-${local.env}"
 }
