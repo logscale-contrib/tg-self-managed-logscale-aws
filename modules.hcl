@@ -19,7 +19,7 @@ locals {
   }
   eks = {
     base_url = "git::git@github.com:logscale-contrib/tf-self-managed-logscale-aws-k8s-cluster.git"
-    version  = "?ref=v1.0.0"
+    version  = "?ref=v1.0.2"
   }
   aws_k8s_helm_w_iam = {
     base_url = "git::git@github.com:logscale-contrib/tf-self-managed-logscale-aws-k8s-helm-with-iam.git"
@@ -27,7 +27,7 @@ locals {
   }
   eks_karpenter = {
     base_url = "git::git@github.com:logscale-contrib/tf-self-managed-logscale-aws-k8s-karpenter.git"
-    version  = "?ref=v1.2.10"
+    version  = "?ref=v1.2.11"
   }
   eks_linkerd = {
     base_url = "git::git@github.com:logscale-contrib/tf-self-managed-logscale-aws-k8s-linkerd2.git"
