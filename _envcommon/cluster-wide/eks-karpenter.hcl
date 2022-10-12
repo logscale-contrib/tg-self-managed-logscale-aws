@@ -45,6 +45,31 @@ locals {
   aws_admin_arn = local.admin.locals.aws_admin_arn
 }
 
+generate "provider" {
+  path      = "provider.tf"
+  if_exists = "overwrite_terragrunt"
+  contents  = <<EOF
+provider "aws" {
+  region = "${local.aws_region}"
+
+  # Only these AWS Account IDs may be operated on by this template
+  allowed_account_ids = ["${local.account_id}"]
+}
+provider "kubernetes" {
+  
+  host                   = "${dependency.eks.outputs.eks_endpoint}"
+  cluster_ca_certificate = base64decode("${dependency.eks.outputs.eks_cluster_certificate_authority_data}")
+
+  exec {
+    api_version = "client.authentication.k8s.io/v1"
+    command     = "aws"
+    # This requires the awscli to be installed locally where Terraform is executed
+    args = ["eks", "get-token", "--cluster-name", "logscale-${local.env}"]
+  }
+}
+
+EOF
+}
 dependency "eks" {
   config_path = "${get_terragrunt_dir()}/../../platform/eks/"
 }
@@ -60,11 +85,22 @@ dependency "argocd_project" {
 # environments.
 # ---------------------------------------------------------------------------------------------------------------------
 inputs = {
-  uniqueName                             = "logscale-${local.env}"
-  eks_cluster_id                         = dependency.eks.outputs.eks_cluster_id
-  eks_endpoint                           = dependency.eks.outputs.eks_endpoint
-  eks_cluster_certificate_authority_data = dependency.eks.outputs.eks_cluster_certificate_authority_data
-  eks_oidc_provider_arn                  = dependency.eks.outputs.eks_oidc_provider_arn
-  eks_karpenter_iam_role_name            = dependency.eks.outputs.eks_karpenter_iam_role_name
-  eks_karpenter_iam_role_arn             = dependency.eks.outputs.eks_karpenter_iam_role_arn
+  uniqueName     = "logscale-${local.env}"
+  eks_cluster_id = dependency.eks.outputs.eks_cluster_id
+  eks_endpoint   = dependency.eks.outputs.eks_endpoint
+
+  eks_oidc_provider_arn       = dependency.eks.outputs.eks_oidc_provider_arn
+  eks_karpenter_iam_role_name = dependency.eks.outputs.eks_karpenter_iam_role_name
+  eks_karpenter_iam_role_arn  = dependency.eks.outputs.eks_karpenter_iam_role_arn
+
+  values = <<EOF
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: topology.kubernetes.io/zone
+    whenUnsatisfiable: DoNotSchedule
+replicas: 2
+EOF
+
+  chart_version = "v0.18.0"
+  repository = "public.ecr.aws/karpenter"
 }

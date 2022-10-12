@@ -43,6 +43,43 @@ locals {
 
 }
 
+generate "provider" {
+  path      = "provider.tf"
+  if_exists = "overwrite_terragrunt"
+  contents  = <<EOF
+provider "aws" {
+  region = "${local.aws_region}"
+
+  # Only these AWS Account IDs may be operated on by this template
+  allowed_account_ids = ["${local.account_id}"]
+}
+provider "kubernetes" {
+  
+  host                   = "${dependency.eks.outputs.eks_endpoint}"
+  cluster_ca_certificate = base64decode("${dependency.eks.outputs.eks_cluster_certificate_authority_data}")
+
+  exec {
+    api_version = "client.authentication.k8s.io/v1"
+    command     = "aws"
+    # This requires the awscli to be installed locally where Terraform is executed
+    args = ["eks", "get-token", "--cluster-name", "logscale-${local.env}"]
+  }
+}
+provider "helm" {
+  kubernetes {
+    host                   = "${dependency.eks.outputs.eks_endpoint}"
+    cluster_ca_certificate = base64decode("${dependency.eks.outputs.eks_cluster_certificate_authority_data}")
+
+    exec {
+      api_version = "client.authentication.k8s.io/v1"
+      command     = "aws"
+      # This requires the awscli to be installed locally where Terraform is executed
+      args = ["eks", "get-token", "--cluster-name", "logscale-${local.env}"]
+    }
+  }
+}
+EOF
+}
 dependency "eks" {
   config_path = "${get_terragrunt_dir()}/../../platform/eks/"
 }
@@ -58,9 +95,5 @@ dependency "argocd_project" {
 # environments.
 # ---------------------------------------------------------------------------------------------------------------------
 inputs = {
-  eks_cluster_id                         = dependency.eks.outputs.eks_cluster_id
-  eks_endpoint                           = dependency.eks.outputs.eks_endpoint
-  eks_cluster_certificate_authority_data = dependency.eks.outputs.eks_cluster_certificate_authority_data
-  eks_oidc_provider_arn                  = dependency.eks.outputs.eks_oidc_provider_arn
-
+  
 }

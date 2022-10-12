@@ -88,10 +88,12 @@ dependency "acm_ui" {
 inputs = {
   namespace        = "argocd"
   repository       = "https://argoproj.github.io/argo-helm"
-  create_namespace = true
+  
 
   app = {
     name    = "cw"
+    create_namespace = true
+    
     chart   = "argo-cd"
     version = "5.5.9"
 
