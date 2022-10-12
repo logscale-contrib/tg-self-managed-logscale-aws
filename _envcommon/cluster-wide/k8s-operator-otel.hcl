@@ -89,6 +89,10 @@ dependency "argocd_project" {
   config_path  = "${get_terragrunt_dir()}/../../cluster-wide/argocd-project/"
   skip_outputs = true
 }
+dependency "certmanager" {
+  config_path  = "${get_terragrunt_dir()}/../../cluster-wide/eks-certmanager/"
+  skip_outputs = true
+}
 
 # ---------------------------------------------------------------------------------------------------------------------
 # MODULE PARAMETERS

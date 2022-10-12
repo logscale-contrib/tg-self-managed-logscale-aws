@@ -114,12 +114,12 @@ inputs = {
   attach_load_balancer_controller_policy = true
 
   repository       = "https://aws.github.io/eks-charts"
-  release          = "main"
+  release          = "cw"
   chart            = "aws-load-balancer-controller"
   chart_version    = "1.4.*"
   namespace        = "alb-manager"
   create_namespace = true
-  sa               = "main-aws-load-balancer-controller"
+  sa               = "cw-aws-load-balancer-controller"
   project          = "cluster-wide"
 
   values = yamldecode(<<EOF

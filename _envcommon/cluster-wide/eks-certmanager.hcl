@@ -114,7 +114,7 @@ inputs = {
   attach_cert_manager_policy = true
 
   repository       = "https://charts.jetstack.io"
-  release          = "main"
+  release          = "cw"
   chart            = "cert-manager"
   chart_version    = "1.9.*"
   namespace        = "cert-manager"

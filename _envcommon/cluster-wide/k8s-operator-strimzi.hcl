@@ -103,21 +103,21 @@ inputs = {
   uniqueName = "logscale-${local.env}"
 
 
-  repository       = "https://humio.github.io/humio-operator"
+  repository       = "https://strimzi.io/charts/"
   release          = "cw"
-  chart            = "humio-operator"
-  chart_version    = "0.15.*"
-  namespace        = "humio-operator"
+  chart            = "strimzi-kafka-operator"
+  chart_version    = "0.30.*"
+  namespace        = "strimzi-operator"
   create_namespace = true
   project          = "cluster-wide"
 
   values = yamldecode(<<EOF
-replicas: 2
+watchAnyNamespace: true
 topologySpreadConstraints:
   - maxSkew: 1
     topologyKey: topology.kubernetes.io/zone
     whenUnsatisfiable: DoNotSchedule
-EOF    
-  )
+EOF
+)
 
 }

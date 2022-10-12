@@ -106,7 +106,7 @@ inputs = {
   attach_external_dns_policy = true
 
   repository       = "https://charts.bitnami.com/bitnami"
-  release          = "main"
+  release          = "cw"
   chart            = "external-dns"
   chart_version    = "6.5.*"
   namespace        = "external-dns"
