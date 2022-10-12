@@ -79,7 +79,10 @@ dependency "eks" {
 dependency "acm_ui" {
   config_path = "${get_terragrunt_dir()}/../../platform/acm-ui/"
 }
-
+dependency "linkerd" {
+  config_path = "${get_terragrunt_dir()}/../../cluster-wide/eks-linkerd2/"
+  skip_outputs = true
+}
 # ---------------------------------------------------------------------------------------------------------------------
 # MODULE PARAMETERS
 # These are the variables we have to pass in to use the module. This defines the parameters that are common across all

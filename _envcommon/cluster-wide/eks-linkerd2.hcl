@@ -83,10 +83,6 @@ EOF
 dependency "eks" {
   config_path = "${get_terragrunt_dir()}/../../platform/eks/"
 }
-dependency "argocd_project" {
-  config_path  = "${get_terragrunt_dir()}/../../cluster-wide/argocd-project/"
-  skip_outputs = true
-}
 
 
 # ---------------------------------------------------------------------------------------------------------------------
