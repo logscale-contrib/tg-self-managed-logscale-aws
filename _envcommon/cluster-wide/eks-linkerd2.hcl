@@ -81,7 +81,7 @@ provider "helm" {
 EOF
 }
 dependency "eks" {
-  config_path = "${get_terragrunt_dir()}/../../platform/eks/"
+  config_path = "${get_terragrunt_dir()}/../../platform/aws-eks/"
 }
 
 
@@ -91,5 +91,5 @@ dependency "eks" {
 # environments.
 # ---------------------------------------------------------------------------------------------------------------------
 inputs = {
-  
+
 }

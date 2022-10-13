@@ -12,7 +12,31 @@
 terraform {
   source = "${local.source_module.base_url}${local.source_module.version}"
 }
+generate "provider" {
+  path      = "provider.tf"
+  if_exists = "overwrite_terragrunt"
+  contents  = <<EOF
+provider "aws" {
+  region = "${local.aws_region}"
 
+  # Only these AWS Account IDs may be operated on by this template
+  allowed_account_ids = ["${local.account_id}"]
+}
+provider "helm" {
+  kubernetes {
+    host                   = "${dependency.eks.outputs.eks_endpoint}"
+    cluster_ca_certificate = base64decode("${dependency.eks.outputs.eks_cluster_certificate_authority_data}")
+
+    exec {
+      api_version = "client.authentication.k8s.io/v1"
+      command     = "aws"
+      # This requires the awscli to be installed locally where Terraform is executed
+      args = ["eks", "get-token", "--cluster-name", "logscale-${local.env}"]
+    }
+  }
+}
+EOF
+}
 # ---------------------------------------------------------------------------------------------------------------------
 # Locals are named constants that are reusable within the configuration.
 # ---------------------------------------------------------------------------------------------------------------------
@@ -26,7 +50,7 @@ locals {
   # Expose the base source URL so different versions of the module can be deployed in different environments. This will
   # be used to construct the terraform block in the child terragrunt configurations.
   module_vars   = read_terragrunt_config(find_in_parent_folders("modules.hcl"))
-  source_module = local.module_vars.locals.k8s_helm
+  source_module = local.module_vars.locals.helm_release
 
   # Automatically load account-level variables
   account_vars = read_terragrunt_config(find_in_parent_folders("account.hcl"))
@@ -42,82 +66,75 @@ locals {
   account_id   = local.account_vars.locals.aws_account_id
   aws_region   = local.region_vars.locals.aws_region
 
+  dns         = read_terragrunt_config(find_in_parent_folders("dns.hcl"))
+  domain_name = local.dns.locals.domain_name
+
+  host_name = "argocd"
+
 }
 
-generate "provider" {
-  path      = "provider.tf"
-  if_exists = "overwrite_terragrunt"
-  contents  = <<EOF
-provider "aws" {
-  region = "${local.aws_region}"
-
-  # Only these AWS Account IDs may be operated on by this template
-  allowed_account_ids = ["${local.account_id}"]
-}
-provider "kubernetes" {
-  
-  host                   = "${dependency.eks.outputs.eks_endpoint}"
-  cluster_ca_certificate = base64decode("${dependency.eks.outputs.eks_cluster_certificate_authority_data}")
-
-  exec {
-    api_version = "client.authentication.k8s.io/v1"
-    command     = "aws"
-    # This requires the awscli to be installed locally where Terraform is executed
-    args = ["eks", "get-token", "--cluster-name", "logscale-${local.env}"]
-  }
-}
-provider "kubectl" {
-  apply_retry_count      = 10
-  load_config_file       = false
-
-  host                   = "${dependency.eks.outputs.eks_endpoint}"
-  cluster_ca_certificate = base64decode("${dependency.eks.outputs.eks_cluster_certificate_authority_data}")
-
-  exec {
-    api_version = "client.authentication.k8s.io/v1beta1"
-    command     = "aws"
-    # This requires the awscli to be installed locally where Terraform is executed
-    args = ["eks", "get-token", "--cluster-name", "logscale-${local.env}"]
-  }
-}
-EOF
-}
 dependency "eks" {
   config_path = "${get_terragrunt_dir()}/../../platform/aws-eks/"
 }
-dependency "argocd_project" {
-  config_path  = "${get_terragrunt_dir()}/../../platform/k8s-argocd-project/"
-  skip_outputs = true
+dependency "acm_ui" {
+  config_path = "${get_terragrunt_dir()}/../../platform/aws-acm-ui/"
 }
-dependency "certmanager" {
-  config_path  = "${get_terragrunt_dir()}/../../cluster-wide/k8s-certmanager/"
-  skip_outputs = true
-}
-
 # ---------------------------------------------------------------------------------------------------------------------
 # MODULE PARAMETERS
 # These are the variables we have to pass in to use the module. This defines the parameters that are common across all
 # environments.
 # ---------------------------------------------------------------------------------------------------------------------
 inputs = {
-  uniqueName = "logscale-${local.env}"
+  namespace  = "argocd"
+  repository = "https://argoproj.github.io/argo-helm"
 
+  app = {
+    name             = "cw"
+    create_namespace = true
 
-  repository       = "https://strimzi.io/charts/"
-  release          = "cw"
-  chart            = "strimzi-kafka-operator"
-  chart_version    = "0.30.*"
-  namespace        = "strimzi-operator"
-  create_namespace = true
-  project          = "cluster-wide"
+    chart   = "argo-cd"
+    version = "5.5.9"
 
-  values = yamldecode(<<EOF
-watchAnyNamespace: true
-topologySpreadConstraints:
-  - maxSkew: 1
-    topologyKey: topology.kubernetes.io/zone
-    whenUnsatisfiable: DoNotSchedule
-EOF
-  )
+    wait   = true
+    deploy = 1
+  }
+  values = [<<EOF
+argo-cd:
+  config:
+    application.resourceTrackingMethod: annotation
+redis-ha:
+  enabled: true
 
+controller:
+  replicas: 2
+
+repoServer:
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+
+applicationSet:
+  replicas: 2
+
+server:
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+  extraArgs:
+  - --insecure
+  service:
+    type: NodePort
+  ingress:
+    enabled: true
+    ingressClassName: alb
+    annotations:
+      alb.ingress.kubernetes.io/certificate-arn: ${dependency.acm_ui.outputs.acm_certificate_arn}
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+      alb.ingress.kubernetes.io/ssl-redirect: '443'
+      alb.ingress.kubernetes.io/scheme: internet-facing
+      alb.ingress.kubernetes.io/group.name: logscale-${local.env}
+      external-dns.alpha.kubernetes.io/hostname: ${local.host_name}.${local.domain_name}
+
+EOF 
+  ]
 }

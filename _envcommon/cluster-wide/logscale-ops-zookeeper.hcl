@@ -83,7 +83,7 @@ provider "kubectl" {
 EOF
 }
 dependency "eks" {
-  config_path = "${get_terragrunt_dir()}/../../platform/eks/"
+  config_path = "${get_terragrunt_dir()}/../../platform/aws-eks/"
 }
 dependency "logscaleOpsProject" {
   config_path  = "${get_terragrunt_dir()}/../../cluster-wide/logscale-ops-project/"
@@ -155,6 +155,6 @@ topologySpreadConstraints:
             - "ops"
 
 EOF
-)
+  )
 
 }

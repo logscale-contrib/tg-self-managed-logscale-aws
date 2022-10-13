@@ -26,7 +26,7 @@ locals {
   # Expose the base source URL so different versions of the module can be deployed in different environments. This will
   # be used to construct the terraform block in the child terragrunt configurations.
   module_vars   = read_terragrunt_config(find_in_parent_folders("modules.hcl"))
-  source_module = local.module_vars.locals.k8s_helm
+  source_module = local.module_vars.locals.eks_karpenter
 
   # Automatically load account-level variables
   account_vars = read_terragrunt_config(find_in_parent_folders("account.hcl"))
@@ -42,6 +42,7 @@ locals {
   account_id   = local.account_vars.locals.aws_account_id
   aws_region   = local.region_vars.locals.aws_region
 
+  aws_admin_arn = local.admin.locals.aws_admin_arn
 }
 
 generate "provider" {
@@ -89,10 +90,7 @@ dependency "argocd_project" {
   config_path  = "${get_terragrunt_dir()}/../../platform/k8s-argocd-project/"
   skip_outputs = true
 }
-dependency "certmanager" {
-  config_path  = "${get_terragrunt_dir()}/../../cluster-wide/k8s-certmanager/"
-  skip_outputs = true
-}
+
 
 # ---------------------------------------------------------------------------------------------------------------------
 # MODULE PARAMETERS
@@ -100,24 +98,22 @@ dependency "certmanager" {
 # environments.
 # ---------------------------------------------------------------------------------------------------------------------
 inputs = {
-  uniqueName = "logscale-${local.env}"
+  uniqueName     = "logscale-${local.env}"
+  eks_cluster_id = dependency.eks.outputs.eks_cluster_id
+  eks_endpoint   = dependency.eks.outputs.eks_endpoint
 
+  eks_oidc_provider_arn       = dependency.eks.outputs.eks_oidc_provider_arn
+  eks_karpenter_iam_role_name = dependency.eks.outputs.eks_karpenter_iam_role_name
+  eks_karpenter_iam_role_arn  = dependency.eks.outputs.eks_karpenter_iam_role_arn
 
-  repository       = "https://strimzi.io/charts/"
-  release          = "cw"
-  chart            = "strimzi-kafka-operator"
-  chart_version    = "0.30.*"
-  namespace        = "strimzi-operator"
-  create_namespace = true
-  project          = "cluster-wide"
-
-  values = yamldecode(<<EOF
-watchAnyNamespace: true
+  values = <<EOF
 topologySpreadConstraints:
   - maxSkew: 1
     topologyKey: topology.kubernetes.io/zone
     whenUnsatisfiable: DoNotSchedule
+replicas: 2
 EOF
-  )
 
+  chart_version = "v0.18.0"
+  repository    = "public.ecr.aws/karpenter"
 }

@@ -49,13 +49,13 @@ locals {
 }
 
 dependency "eks" {
-  config_path = "${get_terragrunt_dir()}/../../platform/eks/"
+  config_path = "${get_terragrunt_dir()}/../../platform/aws-eks/"
 }
 # dependency "alb" {
-#   config_path = "${get_terragrunt_dir()}/../../platform/alb/"
+#   config_path = "${get_terragrunt_dir()}/../../platform/aws-alb/"
 # }
 dependency "argocd_project" {
-  config_path  = "${get_terragrunt_dir()}/../../cluster-wide/argocd-project/"
+  config_path  = "${get_terragrunt_dir()}/../../platform/k8s-argocd-project/"
   skip_outputs = true
 }
 

@@ -12,7 +12,30 @@
 terraform {
   source = "${local.source_module.base_url}${local.source_module.version}"
 }
+generate "provider" {
+  path      = "provider.tf"
+  if_exists = "overwrite_terragrunt"
+  contents  = <<EOF
+provider "aws" {
+  region = "${local.aws_region}"
 
+  # Only these AWS Account IDs may be operated on by this template
+  allowed_account_ids = ["${local.account_id}"]
+}
+provider "kubernetes" {
+  
+  host                   = "${dependency.eks.outputs.eks_endpoint}"
+  cluster_ca_certificate = base64decode("${dependency.eks.outputs.eks_cluster_certificate_authority_data}")
+
+  exec {
+    api_version = "client.authentication.k8s.io/v1"
+    command     = "aws"
+    # This requires the awscli to be installed locally where Terraform is executed
+    args = ["eks", "get-token", "--cluster-name", "logscale-${local.env}"]
+  }
+}
+EOF
+}
 # ---------------------------------------------------------------------------------------------------------------------
 # Locals are named constants that are reusable within the configuration.
 # ---------------------------------------------------------------------------------------------------------------------
@@ -42,55 +65,14 @@ locals {
   account_id   = local.account_vars.locals.aws_account_id
   aws_region   = local.region_vars.locals.aws_region
 
+
 }
 
-generate "provider" {
-  path      = "provider.tf"
-  if_exists = "overwrite_terragrunt"
-  contents  = <<EOF
-provider "aws" {
-  region = "${local.aws_region}"
-
-  # Only these AWS Account IDs may be operated on by this template
-  allowed_account_ids = ["${local.account_id}"]
-}
-provider "kubernetes" {
-  
-  host                   = "${dependency.eks.outputs.eks_endpoint}"
-  cluster_ca_certificate = base64decode("${dependency.eks.outputs.eks_cluster_certificate_authority_data}")
-
-  exec {
-    api_version = "client.authentication.k8s.io/v1"
-    command     = "aws"
-    # This requires the awscli to be installed locally where Terraform is executed
-    args = ["eks", "get-token", "--cluster-name", "logscale-${local.env}"]
-  }
-}
-provider "kubectl" {
-  apply_retry_count      = 10
-  load_config_file       = false
-
-  host                   = "${dependency.eks.outputs.eks_endpoint}"
-  cluster_ca_certificate = base64decode("${dependency.eks.outputs.eks_cluster_certificate_authority_data}")
-
-  exec {
-    api_version = "client.authentication.k8s.io/v1beta1"
-    command     = "aws"
-    # This requires the awscli to be installed locally where Terraform is executed
-    args = ["eks", "get-token", "--cluster-name", "logscale-${local.env}"]
-  }
-}
-EOF
-}
 dependency "eks" {
   config_path = "${get_terragrunt_dir()}/../../platform/aws-eks/"
 }
-dependency "argocd_project" {
+dependency "argocdProject" {
   config_path  = "${get_terragrunt_dir()}/../../platform/k8s-argocd-project/"
-  skip_outputs = true
-}
-dependency "certmanager" {
-  config_path  = "${get_terragrunt_dir()}/../../cluster-wide/k8s-certmanager/"
   skip_outputs = true
 }
 
@@ -100,24 +82,16 @@ dependency "certmanager" {
 # environments.
 # ---------------------------------------------------------------------------------------------------------------------
 inputs = {
-  uniqueName = "logscale-${local.env}"
+  repository    = "https://helm.linkerd.io/stable"
+  release       = "cw-cni"
+  chart         = "linkerd2-cni"
+  chart_version = "30.3.*"
+  namespace     = "linkerd-cni"
+  project       = "cluster-wide"
 
 
-  repository       = "https://strimzi.io/charts/"
-  release          = "cw"
-  chart            = "strimzi-kafka-operator"
-  chart_version    = "0.30.*"
-  namespace        = "strimzi-operator"
-  create_namespace = true
-  project          = "cluster-wide"
 
-  values = yamldecode(<<EOF
-watchAnyNamespace: true
-topologySpreadConstraints:
-  - maxSkew: 1
-    topologyKey: topology.kubernetes.io/zone
-    whenUnsatisfiable: DoNotSchedule
+  values = <<EOF
+novalues: "empty"
 EOF
-  )
-
 }

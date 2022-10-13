@@ -26,7 +26,7 @@ locals {
   # Expose the base source URL so different versions of the module can be deployed in different environments. This will
   # be used to construct the terraform block in the child terragrunt configurations.
   module_vars   = read_terragrunt_config(find_in_parent_folders("modules.hcl"))
-  source_module = local.module_vars.locals.k8s_helm
+  source_module = local.module_vars.locals.aws_k8s_helm_w_iam
 
   # Automatically load account-level variables
   account_vars = read_terragrunt_config(find_in_parent_folders("account.hcl"))
@@ -37,10 +37,14 @@ locals {
   # Automatically load region-level variables
   admin = read_terragrunt_config(find_in_parent_folders("admin.hcl"))
 
+  dns = read_terragrunt_config(find_in_parent_folders("dns.hcl"))
+
   # Extract the variables we need for easy access
   account_name = local.account_vars.locals.account_name
   account_id   = local.account_vars.locals.aws_account_id
   aws_region   = local.region_vars.locals.aws_region
+
+  zone_id = local.dns.locals.zone_id
 
 }
 
@@ -89,10 +93,7 @@ dependency "argocd_project" {
   config_path  = "${get_terragrunt_dir()}/../../platform/k8s-argocd-project/"
   skip_outputs = true
 }
-dependency "certmanager" {
-  config_path  = "${get_terragrunt_dir()}/../../cluster-wide/k8s-certmanager/"
-  skip_outputs = true
-}
+
 
 # ---------------------------------------------------------------------------------------------------------------------
 # MODULE PARAMETERS
@@ -102,22 +103,34 @@ dependency "certmanager" {
 inputs = {
   uniqueName = "logscale-${local.env}"
 
+  attach_external_dns_policy = true
 
-  repository       = "https://strimzi.io/charts/"
+  repository       = "https://charts.bitnami.com/bitnami"
   release          = "cw"
-  chart            = "strimzi-kafka-operator"
-  chart_version    = "0.30.*"
-  namespace        = "strimzi-operator"
+  chart            = "external-dns"
+  chart_version    = "6.5.*"
+  namespace        = "external-dns"
   create_namespace = true
+  sa               = "external-dns"
   project          = "cluster-wide"
 
   values = yamldecode(<<EOF
-watchAnyNamespace: true
 topologySpreadConstraints:
   - maxSkew: 1
     topologyKey: topology.kubernetes.io/zone
     whenUnsatisfiable: DoNotSchedule
-EOF
+
+replicaCount: 2
+serviceAccount:
+  name: external-dns
+txtOwnerId: "logscale-${local.env}"
+
+EOF 
   )
 
+  value_arn = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
+
+  eks_oidc_provider_arn = dependency.eks.outputs.eks_oidc_provider_arn
+
+  zone_id = local.zone_id
 }
