@@ -50,13 +50,13 @@ inputs = {
   enable_dns_hostnames   = true
   one_nat_gateway_per_az = false
 
-  enable_ipv6                     = true
-  assign_ipv6_address_on_creation = true
+  # enable_ipv6                     = true
+  # assign_ipv6_address_on_creation = true
 
-  private_subnet_assign_ipv6_address_on_creation = false
+  # private_subnet_assign_ipv6_address_on_creation = false
 
-  public_subnet_ipv6_prefixes  = [0, 1, 2]
-  private_subnet_ipv6_prefixes = [3, 4, 5]
+  # public_subnet_ipv6_prefixes  = [0, 1, 2]
+  # private_subnet_ipv6_prefixes = [3, 4, 5]
 
   public_subnet_tags = {
     "kubernetes.io/cluster/logscale-${local.env}" = "shared"

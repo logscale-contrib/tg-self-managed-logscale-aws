@@ -12,58 +12,6 @@
 terraform {
   source = "${local.source_module.base_url}${local.source_module.version}"
 }
-
-# ---------------------------------------------------------------------------------------------------------------------
-# Locals are named constants that are reusable within the configuration.
-# ---------------------------------------------------------------------------------------------------------------------
-locals {
-  # Automatically load environment-level variables
-  environment_vars = read_terragrunt_config(find_in_parent_folders("env.hcl"))
-
-  # Extract out common variables for reuse
-  env = local.environment_vars.locals.environment
-
-  # Expose the base source URL so different versions of the module can be deployed in different environments. This will
-  # be used to construct the terraform block in the child terragrunt configurations.
-  module_vars   = read_terragrunt_config(find_in_parent_folders("modules.hcl"))
-  source_module = local.module_vars.locals.aws_k8s_helm_w_iam
-
-  # Automatically load account-level variables
-  account_vars = read_terragrunt_config(find_in_parent_folders("account.hcl"))
-
-  # Automatically load region-level variables
-  region_vars = read_terragrunt_config(find_in_parent_folders("region.hcl"))
-
-  # Automatically load region-level variables
-  admin = read_terragrunt_config(find_in_parent_folders("admin.hcl"))
-
-  dns = read_terragrunt_config(find_in_parent_folders("dns.hcl"))
-
-  # Extract the variables we need for easy access
-  account_name = local.account_vars.locals.account_name
-  account_id   = local.account_vars.locals.aws_account_id
-  aws_region   = local.region_vars.locals.aws_region
-
-  zone_id = local.dns.locals.zone_id
-
-}
-
-dependency "eks" {
-  config_path = "${get_terragrunt_dir()}/../../platform/aws-eks/"
-}
-# dependency "alb" {
-#   config_path = "${get_terragrunt_dir()}/../../platform/aws-alb/"
-# }
-dependency "argocd_project" {
-  config_path  = "${get_terragrunt_dir()}/../../platform/k8s-argocd-project/"
-  skip_outputs = true
-}
-
-dependency "certmanager" {
-  config_path  = "${get_terragrunt_dir()}/../eks-certmanager/"
-  skip_outputs = true
-}
-
 generate "provider" {
   path      = "provider.tf"
   if_exists = "overwrite_terragrunt"
@@ -86,65 +34,51 @@ provider "kubernetes" {
     args = ["eks", "get-token", "--cluster-name", "logscale-${local.env}"]
   }
 }
-provider "kubectl" {
-  apply_retry_count      = 10
-  load_config_file       = false
-
-  host                   = "${dependency.eks.outputs.eks_endpoint}"
-  cluster_ca_certificate = base64decode("${dependency.eks.outputs.eks_cluster_certificate_authority_data}")
-
-  exec {
-    api_version = "client.authentication.k8s.io/v1beta1"
-    command     = "aws"
-    # This requires the awscli to be installed locally where Terraform is executed
-    args = ["eks", "get-token", "--cluster-name", "logscale-${local.env}"]
-  }
-}
 EOF
 }
+# ---------------------------------------------------------------------------------------------------------------------
+# Locals are named constants that are reusable within the configuration.
+# ---------------------------------------------------------------------------------------------------------------------
+locals {
+  # Automatically load environment-level variables
+  environment_vars = read_terragrunt_config(find_in_parent_folders("env.hcl"))
 
+  # Extract out common variables for reuse
+  env = local.environment_vars.locals.environment
+
+  # Expose the base source URL so different versions of the module can be deployed in different environments. This will
+  # be used to construct the terraform block in the child terragrunt configurations.
+  module_vars   = read_terragrunt_config(find_in_parent_folders("modules.hcl"))
+  source_module = local.module_vars.locals.k8s_ns
+
+  # Automatically load account-level variables
+  account_vars = read_terragrunt_config(find_in_parent_folders("account.hcl"))
+
+  # Automatically load region-level variables
+  region_vars = read_terragrunt_config(find_in_parent_folders("region.hcl"))
+
+  # Automatically load region-level variables
+  admin = read_terragrunt_config(find_in_parent_folders("admin.hcl"))
+
+  # Extract the variables we need for easy access
+  account_name = local.account_vars.locals.account_name
+  account_id   = local.account_vars.locals.aws_account_id
+  aws_region   = local.region_vars.locals.aws_region
+
+
+}
+
+dependency "eks" {
+  config_path = "${get_terragrunt_dir()}/../../platform/aws-eks/"
+}
 # ---------------------------------------------------------------------------------------------------------------------
 # MODULE PARAMETERS
 # These are the variables we have to pass in to use the module. This defines the parameters that are common across all
 # environments.
 # ---------------------------------------------------------------------------------------------------------------------
 inputs = {
-  uniqueName = "logscale-${local.env}"
-
-  attach_load_balancer_controller_policy = true
-
-  repository       = "https://aws.github.io/eks-charts"
-  release          = "cw"
-  chart            = "aws-load-balancer-controller"
-  chart_version    = "1.4.*"
-  namespace        = "alb-manager"
-  create_namespace = true
-  sa               = "cw-aws-load-balancer-controller"
-  project          = "cluster-wide"
-
-  values = yamldecode(<<EOF
-topologySpreadConstraints:
-  - maxSkew: 1
-    topologyKey: topology.kubernetes.io/zone
-    whenUnsatisfiable: DoNotSchedule
-
-clusterName: logscale-${local.env}
-enableCertManager: true
-
-rbac:
-    serviceAccount:
-        create: true
-        name: alb-manager
-
-podDisruptionBudget: 
-    maxUnavailable: 1
-
-EOF 
-  )
-
-  value_arn = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
-
-  eks_oidc_provider_arn = dependency.eks.outputs.eks_oidc_provider_arn
-
-  zone_id = local.zone_id
+  name = "otel-operator"
+  annotations = {
+    "linkerd.io/inject" = "enabled"
+  }
 }

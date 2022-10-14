@@ -90,7 +90,7 @@ dependency "argocd_project" {
   skip_outputs = true
 }
 dependency "certmanager" {
-  config_path  = "${get_terragrunt_dir()}/../../cluster-wide/eks-certmanager/"
+  config_path  = "${get_terragrunt_dir()}/../../platform/aws-eks-certmanager/"
   skip_outputs = true
 }
 
@@ -105,10 +105,10 @@ inputs = {
 
   repository       = "https://humio.github.io/humio-operator"
   release          = "cw"
-  chart            = "humio-operator"
+  chart            = "logscale-operator"
   chart_version    = "0.15.*"
-  namespace        = "humio-operator"
-  create_namespace = true
+  namespace        = "logscale-operator"
+  create_namespace = false
   project          = "cluster-wide"
 
   values = yamldecode(<<EOF

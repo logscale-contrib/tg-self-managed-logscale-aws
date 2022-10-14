@@ -34,6 +34,20 @@ provider "kubernetes" {
     args = ["eks", "get-token", "--cluster-name", "logscale-${local.env}"]
   }
 }
+provider "kubectl" {
+  apply_retry_count      = 10
+  load_config_file       = false
+
+  host                   = "${dependency.eks.outputs.eks_endpoint}"
+  cluster_ca_certificate = base64decode("${dependency.eks.outputs.eks_cluster_certificate_authority_data}")
+
+  exec {
+    api_version = "client.authentication.k8s.io/v1beta1"
+    command     = "aws"
+    # This requires the awscli to be installed locally where Terraform is executed
+    args = ["eks", "get-token", "--cluster-name", "logscale-${local.env}"]
+  }
+}
 EOF
 }
 # ---------------------------------------------------------------------------------------------------------------------
@@ -82,16 +96,17 @@ dependency "argocdProject" {
 # environments.
 # ---------------------------------------------------------------------------------------------------------------------
 inputs = {
-  repository    = "https://helm.linkerd.io/stable"
-  release       = "cw-cni"
-  chart         = "linkerd2-cni"
-  chart_version = "30.3.*"
-  namespace     = "linkerd-cni"
-  project       = "cluster-wide"
+  repository       = "https://helm.linkerd.io/stable"
+  release          = "cw-cni"
+  chart            = "linkerd2-cni"
+  chart_version    = "30.3.*"
+  namespace        = "linkerd-cni"
+  project          = "cluster-wide"
+  create_namespace = true
 
 
 
   values = <<EOF
-novalues: "empty"
+privileged: true
 EOF
 }

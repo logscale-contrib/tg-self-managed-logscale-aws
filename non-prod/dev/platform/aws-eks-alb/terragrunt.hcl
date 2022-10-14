@@ -17,12 +17,9 @@ include "root" {
 # Include the envcommon configuration for the component. The envcommon configuration contains settings that are common
 # for the component across all environments.
 include "envcommon" {
-  path   = "${dirname(find_in_parent_folders())}/_envcommon/platform/sg-alb.hcl"
+  path   = "${dirname(find_in_parent_folders())}/_envcommon/platform/aws-eks-alb.hcl"
   expose = true
 }
-
-
-
 
 # ---------------------------------------------------------------------------------------------------------------------
 # We don't need to override any of the common parameters for this environment, so we don't specify any inputs.

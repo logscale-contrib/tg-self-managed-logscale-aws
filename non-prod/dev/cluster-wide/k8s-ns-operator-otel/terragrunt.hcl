@@ -17,12 +17,9 @@ include "root" {
 # Include the envcommon configuration for the component. The envcommon configuration contains settings that are common
 # for the component across all environments.
 include "envcommon" {
-  path   = "${dirname(find_in_parent_folders())}/_envcommon/platform/alb.hcl"
+  path   = "${dirname(find_in_parent_folders())}/_envcommon/cluster-wide/k8s-ns-operator-otel.hcl"
   expose = true
 }
-
-
-
 
 # ---------------------------------------------------------------------------------------------------------------------
 # We don't need to override any of the common parameters for this environment, so we don't specify any inputs.
