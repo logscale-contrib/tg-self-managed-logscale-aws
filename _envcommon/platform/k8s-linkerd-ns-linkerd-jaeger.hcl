@@ -77,14 +77,9 @@ dependency "eks" {
 # environments.
 # ---------------------------------------------------------------------------------------------------------------------
 inputs = {
-  name = "linkerd"
-  annotations = {
-    "linkerd.io/inject" = "disabled"
-  }
+  name = "linkerd-jaeger"
   labels = {
-    "linkerd.io/is-control-plane"          = "true"
-    "config.linkerd.io/admission-webhooks" = "disabled"
-    "linkerd.io/control-plane-ns"          = "linkerd"
+    "linkerd.io/extension" = "jaeger"
   }
 
 }

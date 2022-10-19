@@ -77,14 +77,8 @@ dependency "eks" {
 # environments.
 # ---------------------------------------------------------------------------------------------------------------------
 inputs = {
-  name = "linkerd"
+  name = "logscale-ops"
   annotations = {
-    "linkerd.io/inject" = "disabled"
+    "linkerd.io/inject" = "enabled"
   }
-  labels = {
-    "linkerd.io/is-control-plane"          = "true"
-    "config.linkerd.io/admission-webhooks" = "disabled"
-    "linkerd.io/control-plane-ns"          = "linkerd"
-  }
-
 }

@@ -85,11 +85,14 @@ EOF
 dependency "eks" {
   config_path = "${get_terragrunt_dir()}/../../platform/aws-eks/"
 }
+dependency "logscalecwProject" {
+  config_path  = "${get_terragrunt_dir()}/../../cluster-wide/logscale-ops-project/"
+  skip_outputs = true
+}
 dependency "logscaleOpsProject" {
   config_path  = "${get_terragrunt_dir()}/../../cluster-wide/logscale-ops-project/"
   skip_outputs = true
 }
-
 # ---------------------------------------------------------------------------------------------------------------------
 # MODULE PARAMETERS
 # These are the variables we have to pass in to use the module. This defines the parameters that are common across all
@@ -103,9 +106,9 @@ inputs = {
   release          = "ops"
   chart            = "zookeeper"
   chart_version    = "10.0.*"
-  namespace        = "logscale"
-  create_namespace = true
-  project          = "logscale"
+  namespace        = "logscale-ops"
+  create_namespace = false
+  project          = "logscale-ops"
 
   values = yamldecode(<<EOF
 replicaCount: 5

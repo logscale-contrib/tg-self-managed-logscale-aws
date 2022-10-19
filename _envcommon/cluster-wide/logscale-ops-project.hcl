@@ -86,7 +86,7 @@ dependency "argocd" {
 # environments.
 # ---------------------------------------------------------------------------------------------------------------------
 inputs = {
-  name        = "logscale"
+  name        = "logscale-ops"
   namespace   = "argocd"
   description = "Used for cluster wide resources"
   repository  = "https://argoproj.github.io/argo-helm"
@@ -95,15 +95,16 @@ inputs = {
     {
       server    = "https://kubernetes.default.svc"
       name      = "in-cluster"
-      namespace = "logscale"
+      namespace = "logscale-ops"
     }
   ]
-  cluster_resource_whitelist = [
+  namespaceResourceWhitelist = [
     {
-      "group" = ""
-      "kind"  = "Namespace"
-    },
+      "group" : "*"
+      "kind" : "*"
+    }
   ]
+  cluster_resource_whitelist = []
   "sourceRepos" = [
     "*",
   ]

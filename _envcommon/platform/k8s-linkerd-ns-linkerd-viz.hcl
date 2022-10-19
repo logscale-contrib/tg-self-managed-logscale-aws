@@ -80,7 +80,6 @@ inputs = {
   name = "linkerd-viz"
   labels = {
     "linkerd.io/extension" = "viz"
-    "linkerd.io/inject" = "enabled"
   }
 
 }

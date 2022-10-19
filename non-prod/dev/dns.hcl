@@ -4,5 +4,5 @@
 # terragrunt.hcl configuration.
 locals {
   domain_name = "dev.rfaircloth.com"
-  zone_id     = "Z02452203C3RJBY47A90J"
+  zone_id     = "Z0776477106ARIYRWZP9D"
 }

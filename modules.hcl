@@ -24,7 +24,7 @@ locals {
   }
   eks_linkerd_ta = {
     base_url = "git::git@github.com:logscale-contrib/terraform-k8s-linkerd-trust-anchor.git"
-    version  = "?ref=v1.0.20"
+    version  = "?ref=v2.0.0"
   }
 
   k8s_ns = {

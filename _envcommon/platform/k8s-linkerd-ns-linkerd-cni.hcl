@@ -79,8 +79,8 @@ dependency "eks" {
 inputs = {
   name = "linkerd-cni"
   labels = {
-    "linkerd.io/cni-resource" = "true"
-    "config.linkerd.io/admission-webhooks" = "disabled" 
+    "linkerd.io/cni-resource"              = "true"
+    "config.linkerd.io/admission-webhooks" = "disabled"
   }
 
 }

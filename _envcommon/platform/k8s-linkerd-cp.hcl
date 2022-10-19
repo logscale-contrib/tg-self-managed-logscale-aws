@@ -172,6 +172,18 @@ inputs = {
           "scheme" = "kubernetes.io/tls"
         }
       }
+      "policyValidator" = {
+        "externalSecret" = true
+        "caBundle"       = dependency.linkerdTA.outputs.trustAnchorPEM
+      }
+      "proxyInjector" = {
+        "externalSecret" = true
+        "caBundle"       = dependency.linkerdTA.outputs.trustAnchorPEM
+      }
+      "profileValidator" = {
+        "externalSecret" = true
+        "caBundle"       = dependency.linkerdTA.outputs.trustAnchorPEM
+      }
       "identityTrustAnchorsPEM" = dependency.linkerdTA.outputs.trustAnchorPEM
       "cniEnabled"              = true
       "proxyInit" : {
