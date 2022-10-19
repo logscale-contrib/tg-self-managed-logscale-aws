@@ -89,6 +89,9 @@ dependency "argocdProject" {
   config_path  = "${get_terragrunt_dir()}/../../platform/k8s-argocd-project/"
   skip_outputs = true
 }
+dependency "linkerdTA" {
+  config_path = "${get_terragrunt_dir()}/../../platform/k8s-linkerd-ta/"
+}
 
 # ---------------------------------------------------------------------------------------------------------------------
 # MODULE PARAMETERS
@@ -106,7 +109,11 @@ inputs = {
 
 
 
-  values = <<EOF
-novalues: true
-EOF
+  values = yamlencode(
+    {
+      "webhook" = {
+        "externalSecret" = true
+        "caBundle"       = dependency.linkerdTA.outputs.trustAnchorPEM
+      }
+    })
 }
