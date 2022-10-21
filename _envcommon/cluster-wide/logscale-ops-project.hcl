@@ -104,7 +104,16 @@ inputs = {
       "kind" : "*"
     }
   ]
-  cluster_resource_whitelist = []
+  cluster_resource_whitelist = [
+    {
+      "group" : "rbac.authorization.k8s.io"
+      "kind" : "ClusterRole"
+    },
+    {
+      "group" : "rbac.authorization.k8s.io"
+      "kind" : "ClusterRoleBinding"
+    }
+  ]
   "sourceRepos" = [
     "*",
   ]

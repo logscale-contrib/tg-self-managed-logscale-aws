@@ -93,12 +93,15 @@ inputs = {
     create_namespace = true
 
     chart   = "argo-cd"
-    version = "5.5.9"
+    version = "5.6.1"
 
     wait   = true
     deploy = 1
   }
   values = [<<EOF
+global:
+  image:
+    tag: v2.5.0-rc3
 argo-cd:
   config:
     application.resourceTrackingMethod: annotation
@@ -123,15 +126,18 @@ server:
   extraArgs:
   - --insecure
   service:
-    type: NodePort
+   type: ClusterIP
   ingress:
     enabled: true
+    hosts:
+      - ${local.host_name}.${local.domain_name}
     ingressClassName: alb
     annotations:
       alb.ingress.kubernetes.io/certificate-arn: ${dependency.acm_ui.outputs.acm_certificate_arn}
       alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
       alb.ingress.kubernetes.io/ssl-redirect: '443'
       alb.ingress.kubernetes.io/scheme: internet-facing
+      alb.ingress.kubernetes.io/target-type: ip
       alb.ingress.kubernetes.io/group.name: logscale-${local.env}
       external-dns.alpha.kubernetes.io/hostname: ${local.host_name}.${local.domain_name}
 

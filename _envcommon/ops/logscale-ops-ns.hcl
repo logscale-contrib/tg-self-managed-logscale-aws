@@ -78,7 +78,7 @@ dependency "eks" {
 # ---------------------------------------------------------------------------------------------------------------------
 inputs = {
   name = "logscale-ops"
-  annotations = {
-    "linkerd.io/inject" = "enabled"
-  }
+  # annotations = {
+  #   "linkerd.io/inject" = "enabled"
+  # }
 }

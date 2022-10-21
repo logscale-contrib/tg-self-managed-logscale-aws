@@ -34,7 +34,7 @@ locals {
 
   k8s_helm = {
     base_url = "git::git@github.com:logscale-contrib/tf-self-managed-logscale-k8s-helm.git"
-    version  = "?ref=v1.3.0"
+    version  = "?ref=v1.4.0"
   }
   helm_release = {
     base_url = "tfr:///terraform-module/release/helm"
@@ -48,4 +48,8 @@ locals {
 
   }
 
+  aws_k8s_logscale_bucket_with_iam = {
+    base_url = "git::git@github.com:logscale-contrib/terraform-aws-logscale-bucket-with-iam.git"
+    version  = "?ref=v1.2.0"
+  }
 }

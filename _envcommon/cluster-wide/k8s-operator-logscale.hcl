@@ -103,20 +103,18 @@ inputs = {
   uniqueName = "logscale-${local.env}"
 
 
-  repository       = "https://humio.github.io/humio-operator"
-  release          = "cw"
-  chart            = "logscale-operator"
-  chart_version    = "0.15.*"
-  namespace        = "logscale-operator"
-  create_namespace = false
-  project          = "cluster-wide"
-
+  repository        = "https://humio.github.io/humio-operator"
+  release           = "cw"
+  chart             = "humio-operator"
+  chart_version     = "0.15.*"
+  namespace         = "logscale-operator"
+  create_namespace  = false
+  project           = "cluster-wide"
+  server_side_apply = true
   values = yamldecode(<<EOF
-replicas: 2
-topologySpreadConstraints:
-  - maxSkew: 1
-    topologyKey: topology.kubernetes.io/zone
-    whenUnsatisfiable: DoNotSchedule
+  prometheus:
+    serviceMonitor:
+      enabled: true  
 EOF    
   )
 

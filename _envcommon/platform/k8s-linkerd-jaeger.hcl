@@ -115,5 +115,5 @@ inputs = {
         "externalSecret" = true
         "caBundle"       = dependency.linkerdTA.outputs.trustAnchorPEM
       }
-    })
+  })
 }

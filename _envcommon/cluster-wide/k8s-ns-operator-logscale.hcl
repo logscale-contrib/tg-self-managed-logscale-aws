@@ -78,7 +78,8 @@ dependency "eks" {
 # ---------------------------------------------------------------------------------------------------------------------
 inputs = {
   name = "logscale-operator"
-  annotations = {
-    "linkerd.io/inject" = "enabled"
-  }
+  #disabled for now due to defect in operator manifest
+  # annotations = {
+  #   "linkerd.io/inject" = "enabled"
+  # }
 }

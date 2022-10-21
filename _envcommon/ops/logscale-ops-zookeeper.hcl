@@ -111,8 +111,19 @@ inputs = {
   project          = "logscale-ops"
 
   values = yamldecode(<<EOF
+autopurge:
+  purgeInterval: 1
+#jvmFlags: "-XX:+HeapDumpOnOutOfMemoryError -XX:OnOutOfMemoryError='kill -9 %p'"
 replicaCount: 5
 fourlwCommandsWhitelist: srvr, mntr, ruok, stat
+auth:
+  client: 
+    enabled: true
+    createSecret: true
+    clientUser: logscale
+    clientPassword: sddadasadfsdfsd  
+    serverUsers: admin
+    serverPasswords: sdfsdfdsfsdf
 pdb:
   create: true
 metrics:

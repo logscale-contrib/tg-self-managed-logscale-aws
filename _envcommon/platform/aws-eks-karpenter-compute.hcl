@@ -96,6 +96,7 @@ dependency "argocdProject" {
 # environments.
 # ---------------------------------------------------------------------------------------------------------------------
 inputs = {
+
   repository    = "ghcr.io/logscale-contrib/helm-aws-eks-karpenter-provisioners/charts"
   release       = "compute"
   chart         = "karpenter-provisioners"
