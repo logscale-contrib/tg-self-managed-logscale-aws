@@ -149,7 +149,9 @@ inputs = {
       }
       podAnnotations = {
         "config.linkerd.io/skip-outbound-ports" = "443"
-
+        #"sidecar.opentelemetry.io/inject": "true"
+        "instrumentation.opentelemetry.io/inject-java": "true"
+        "instrumentation.opentelemetry.io/container-names": "humio"
       }
       nodeCount = 3
       resources = {
