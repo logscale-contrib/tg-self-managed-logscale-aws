@@ -49,7 +49,7 @@ locals {
   # Expose the base source URL so different versions of the module can be deployed in different environments. This will
   # be used to construct the terraform block in the child terragrunt configurations.
   module_vars   = read_terragrunt_config(find_in_parent_folders("modules.hcl"))
-  source_module = local.module_vars.locals.argocd_project
+  source_module = local.module_vars.locals.k8s_ns
 
   # Automatically load account-level variables
   account_vars = read_terragrunt_config(find_in_parent_folders("account.hcl"))
@@ -65,61 +65,20 @@ locals {
   account_id   = local.account_vars.locals.aws_account_id
   aws_region   = local.region_vars.locals.aws_region
 
-  dns         = read_terragrunt_config(find_in_parent_folders("dns.hcl"))
-  domain_name = local.dns.locals.domain_name
-
-  host_name = "argocd"
 
 }
 
 dependency "eks" {
   config_path = "${get_terragrunt_dir()}/../../platform/aws-eks/"
 }
-dependency "argocd" {
-  config_path  = "${get_terragrunt_dir()}/../../platform/k8s-argocd/"
-  skip_outputs = true
-}
-
 # ---------------------------------------------------------------------------------------------------------------------
 # MODULE PARAMETERS
 # These are the variables we have to pass in to use the module. This defines the parameters that are common across all
 # environments.
 # ---------------------------------------------------------------------------------------------------------------------
 inputs = {
-  name        = "logscale-ops"
-  namespace   = "argocd"
-  description = "Used for cluster wide resources"
-  repository  = "https://argoproj.github.io/argo-helm"
-
-  destinations = [
-    {
-      server    = "https://kubernetes.default.svc"
-      name      = "in-cluster"
-      namespace = "logscale-ops"
-    },
-    {
-      server    = "https://kubernetes.default.svc"
-      name      = "in-cluster"
-      namespace = "monitoring"
-    }
-  ]
-  namespaceResourceWhitelist = [
-    {
-      "group" : "*"
-      "kind" : "*"
-    }
-  ]
-  cluster_resource_whitelist = [
-    {
-      "group" : "rbac.authorization.k8s.io"
-      "kind" : "ClusterRole"
-    },
-    {
-      "group" : "rbac.authorization.k8s.io"
-      "kind" : "ClusterRoleBinding"
-    }
-  ]
-  "sourceRepos" = [
-    "*",
-  ]
+  name = "monitoring"
+  annotations = {
+    "linkerd.io/inject" = "enabled"
+  }
 }

@@ -42,16 +42,6 @@ locals {
   account_id   = local.account_vars.locals.aws_account_id
   aws_region   = local.region_vars.locals.aws_region
 
-  dns = read_terragrunt_config(find_in_parent_folders("dns.hcl"))
-
-  domain_name = local.dns.locals.domain_name
-
-  humio                    = read_terragrunt_config(find_in_parent_folders("humio.hcl"))
-  humio_rootUser           = local.humio.locals.humio_rootUser
-  humio_license            = local.humio.locals.humio_license
-  humio_sso_idpCertificate = local.humio.locals.humio_sso_idpCertificate
-  humio_sso_signOnUrl      = local.humio.locals.humio_sso_signOnUrl
-  humio_sso_entityID       = local.humio.locals.humio_sso_entityID
 }
 
 generate "provider" {
@@ -95,15 +85,12 @@ EOF
 dependency "eks" {
   config_path = "${get_terragrunt_dir()}/../../platform/aws-eks/"
 }
-dependency "logscaleOpsProject" {
-  config_path  = "${get_terragrunt_dir()}/../../cluster-wide/logscale-ops-project/"
+dependency "argocd_project" {
+  config_path  = "${get_terragrunt_dir()}/../../platform/k8s-argocd-project/"
   skip_outputs = true
 }
 dependency "acm_ui" {
   config_path = "${get_terragrunt_dir()}/../../platform/aws-acm-ui/"
-}
-dependency "bucket" {
-  config_path = "${get_terragrunt_dir()}/../../ops/aws-logscale-ops-bucket_iam/"
 }
 # ---------------------------------------------------------------------------------------------------------------------
 # MODULE PARAMETERS
@@ -113,129 +100,76 @@ dependency "bucket" {
 inputs = {
   uniqueName = "logscale-${local.env}"
 
-  repository = "https://logscale-contrib.github.io/helm-logscale"
+  repository = "https://prometheus-community.github.io/helm-charts"
 
-  release          = "ops"
-  chart            = "helm-logscale"
-  chart_version    = "1.0.*"
-  namespace        = "logscale-ops"
-  create_namespace = false
-  project          = "logscale-ops"
+  release           = "ops"
+  chart             = "kube-prometheus-stack"
+  chart_version     = "41.5.*"
+  namespace         = "monitoring"
+  create_namespace  = false
+  project           = "cluster-wide"
+  server_side_apply = true
 
+  ignoreDifferences = [
+    {
+      "group" = "monitoring.coreos.com"
+      "kind"  = "ServiceMonitor"
+      "name"  = "ops-kube-prometheus-stack-kubelet"
+      "jsonPointers" = [
+        "/spec/endpoints"
+      ]
+    }
+  ]
   values = {
-    humio = {
-      s3mode   = "aws"
-      fqdn     = "logscale-ops.${local.domain_name}"
-      rootUser = local.humio_rootUser
-      license  = local.humio_license
-      image = {
-        tag = "1.62.0--SNAPSHOT--build-280495--SHA-2b50497545502a2b0aa8ac4bf47fcdc43a621474"
-      }
-      sso = {
-        idpCertificate = local.humio_sso_idpCertificate
-        signOnUrl      = local.humio_sso_signOnUrl
-        entityID       = local.humio_sso_entityID
-      }
-      serviceAccount = {
-        name = "logscale-ops"
-        annotations = {
-          "eks.amazonaws.com/role-arn" = dependency.bucket.outputs.iam_role_arn
+    prometheusOperator = {
+      admissionWebhooks = {
+        certManager = {
+          enabled = true
         }
       }
-
-      buckets = {
-        region  = local.aws_region
-        storage = dependency.bucket.outputs.s3_bucket_id
-      }
-      podAnnotations = {
-        "config.linkerd.io/skip-outbound-ports" = "443"
-        #"sidecar.opentelemetry.io/inject": "true"
-        "instrumentation.opentelemetry.io/inject-java" : "true"
-        "instrumentation.opentelemetry.io/container-names" : "humio"
-      }
-      nodeCount = 3
-      resources = {
-        requests = {
-          memory = "2Gi"
-          cpu    = 2
-        }
-        limits = {
-          memory = "4Gi"
-          cpu    = 4
-        }
-      }
-      affinity = {
-        nodeAffinity = {
-          requiredDuringSchedulingIgnoredDuringExecution = {
-            nodeSelectorTerms = [
-              {
-                matchExpressions = [
-                  {
-                    key      = "kubernetes.io/arch"
-                    operator = "In"
-                    values   = ["amd64"]
-                  },
-                  {
-                    key      = "kubernetes.io/os"
-                    operator = "In"
-                    values   = ["linux"]
-                  }
-                ]
-              }
+    }
+    prometheusSpec = {
+      additionalServiceMonitors = [
+        {
+          name     = "linkerd-federate"
+          jobLabel = "app"
+          #targetLabels = 
+          selector = {
+            matchLabels = {
+              component = "prometheus"
+            }
+          }
+          namespaceSelector = {
+            matchNames = [
+              "linkerd-viz"
             ]
           }
-        }
-        podAntiAffinity = {
-          requiredDuringSchedulingIgnoredDuringExecution = [
+          endpoints = [
             {
-              labelSelector = {
-                matchExpressions = [
-                  {
-                    key      = "app.kubernetes.io/instance"
-                    operator = "In"
-                    values = [
-                      "ops-humio-cluster"
-                    ]
-                  }
+              interval      = "30s"
+              scrapeTimeout = "30s"
+              params = {
+                "match[]" = [
+                  "{job=\"linkerd-proxy\"}",
+                  "{job=\"linkerd-controller\"}"
                 ]
               }
-              topologyKey = "kubernetes.io/hostname"
+              path        = "/federate"
+              port        = "admin-http"
+              honorLabels = true
+              relabelings : [
+                {
+                  action = "keep"
+                  regex  = "^prometheus$"
+                  sourceLabels = [
+                    "__meta_kubernetes_pod_container_name"
+                  ]
+                }
+              ]
             }
           ]
         }
-      }
-      config = {
-        dataVolumePersistentVolumeClaimSpecTemplate = {
-          accessModes = [
-            "ReadWriteOnce"
-          ]
-          resources = {
-            requests = {
-              storage = "100Gi"
-            }
-          }
-          storageClassName = "ebs-gp3-enc"
-        }
-      }
-      externalzookeeperHostname = "ops-zookeeper-headless:2181"
-      externalKafkaHostname     = "ops-logscale-strimzi-kafka-kafka-bootstrap:9092"
-      service = {
-        type = "ClusterIP"
-      }
-      ingress = {
-        enabled = true
-        tls     = false
-        annotations = {
-          "alb.ingress.kubernetes.io/certificate-arn" = dependency.acm_ui.outputs.acm_certificate_arn
-          "alb.ingress.kubernetes.io/listen-ports"    = "[{\"HTTP\": 80}, {\"HTTPS\": 443}]"
-          "alb.ingress.kubernetes.io/ssl-redirect"    = "443"
-          "alb.ingress.kubernetes.io/scheme"          = "internet-facing"
-          "alb.ingress.kubernetes.io/target-type"     = "ip"
-          "alb.ingress.kubernetes.io/group.name"      = "logscale-${local.env}"
-          "external-dns.alpha.kubernetes.io/hostname" = "logscale-ops.${local.domain_name}"
-        }
-        className = "alb"
-      }
+      ]
     }
 
   }

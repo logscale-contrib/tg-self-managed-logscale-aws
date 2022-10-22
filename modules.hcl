@@ -50,6 +50,6 @@ locals {
 
   aws_k8s_logscale_bucket_with_iam = {
     base_url = "git::git@github.com:logscale-contrib/terraform-aws-logscale-bucket-with-iam.git"
-    version  = "?ref=v1.2.0"
+    version  = "?ref=v1.2.1"
   }
 }
