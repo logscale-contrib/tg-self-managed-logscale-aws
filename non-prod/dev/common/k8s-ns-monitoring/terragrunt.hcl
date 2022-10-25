@@ -13,11 +13,19 @@
 include "root" {
   path = find_in_parent_folders()
 }
+include "generate_aws" {
+  path   = "${dirname(find_in_parent_folders())}/_envcommon/infra/aws/generate_aws.hcl"
+  expose = true
+}
+include "generate_k8s" {
+  path   = "${dirname(find_in_parent_folders())}/_envcommon/infra/aws/generate_k8s_kubernetes_only.hcl"
+  expose = true
+}
 
 # Include the envcommon configuration for the component. The envcommon configuration contains settings that are common
 # for the component across all environments.
 include "envcommon" {
-  path   = "${dirname(find_in_parent_folders())}/_envcommon/cluster-wide/k8s-ns-monitoring.hcl"
+  path   = "${dirname(find_in_parent_folders())}/_envcommon/infra/common/k8s-ns-monitoring.hcl"
   expose = true
 }
 

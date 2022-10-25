@@ -17,7 +17,7 @@ include "root" {
 # Include the envcommon configuration for the component. The envcommon configuration contains settings that are common
 # for the component across all environments.
 include "envcommon" {
-  path   = "${dirname(find_in_parent_folders())}/_envcommon/cluster-wide/k8s-operator-monitoring.hcl"
+  path   = "${dirname(find_in_parent_folders())}/_envcommon/infra/aws/acm-ui.hcl"
   expose = true
 }
 
