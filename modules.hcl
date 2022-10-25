@@ -16,15 +16,15 @@ locals {
 
   aws_k8s_helm_w_iam = {
     base_url = "git::git@github.com:logscale-contrib/tf-self-managed-logscale-aws-k8s-helm-with-iam.git"
-    version  = "?ref=v1.5.1"
+    version  = "?ref=v2.1.1"
   }
-  eks_karpenter = {
-    base_url = "git::git@github.com:logscale-contrib/tf-self-managed-logscale-aws-k8s-karpenter.git"
-    version  = "?ref=v1.3.0"
+  eks_olm = {
+    base_url = "git::git@github.com:logscale-contrib/terraform-k8s-olm.git"
+    version  = "?ref=v1.0.0"
   }
   eks_linkerd_ta = {
     base_url = "git::git@github.com:logscale-contrib/terraform-k8s-linkerd-trust-anchor.git"
-    version  = "?ref=v2.0.0"
+    version  = "?ref=v2.1.7"
   }
 
   k8s_ns = {
