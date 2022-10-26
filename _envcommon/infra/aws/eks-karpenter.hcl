@@ -52,8 +52,8 @@ inputs = {
   eks_oidc_provider_arn       = dependency.eks.outputs.eks_oidc_provider_arn
   eks_karpenter_iam_role_name = dependency.eks.outputs.eks_karpenter_iam_role_name
   eks_karpenter_iam_role_arn  = dependency.eks.outputs.eks_karpenter_iam_role_arn
-
-  sa = "karpenter"
+  attach_karpenter_controller_policy = true
+  sa = "cw-karpenter"
 
   value_arn = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
 
@@ -75,14 +75,12 @@ inputs = {
     })
   ]
 
-  KarpenterProvisioners = [
-    {
-      key : "compute"
-      value = <<YAML
+  karpenter_provisioners = {
+    default = <<YAML
 apiVersion: karpenter.sh/v1alpha5
 kind: Provisioner
 metadata:
-  name: compute
+  name: default
   namespace: karpenter
 spec:
   # Enables consolidation which attempts to reduce cluster cost by both removing un-needed nodes and down-sizing those
@@ -95,7 +93,7 @@ spec:
   ttlSecondsUntilExpired: 2592000 # 30 Days = 60 * 60 * 24 * 30 Seconds;
 
   # If omitted, the feature is disabled, nodes will never scale down due to low utilization
-  ttlSecondsAfterEmpty: 30
+  # ttlSecondsAfterEmpty: 30
 
   # Priority given to the provisioner when the scheduler considers which provisioner
   # to select. Higher weights indicate higher priority when comparing provisioners.
@@ -104,9 +102,9 @@ spec:
 
   # Provisioned nodes will have these taints
   # Taints may prevent pods from scheduling if they are not tolerated by the pod.
-  taints:
-    - key: example.com/special-taint
-      effect: NoSchedule
+  # taints:
+  #   - key: example.com/special-taint
+  #     effect: NoSchedule
 
 
   # Provisioned nodes will have these taints, but pods do not need to tolerate these taints to be provisioned by this
@@ -145,8 +143,8 @@ spec:
   # References cloud provider-specific custom resource, see your cloud provider specific documentation
   providerRef:
     name: default      
+
 YAML
-    }
-  ]
+  }
 
 }
