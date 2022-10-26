@@ -50,11 +50,12 @@ dependency "eks" {
 dependency "acm_ui" {
   config_path = "${get_terragrunt_dir()}/../../aws/infra/acm-ui/"
 }
+
 dependencies {
   paths = [
     "${get_terragrunt_dir()}/../k8s-linkerd-cp",
     "${get_terragrunt_dir()}/../k8s-ns-monitoring",
-    "${get_terragrunt_dir()}/../k8s-certmanager/",
+    "${get_terragrunt_dir()}/../../aws/infra/eks-alb/",
     "${get_terragrunt_dir()}/../k8s-prom-crds/"
   ]
 }
@@ -71,9 +72,9 @@ inputs = {
   app = {
     name             = "ops"
     chart            = "kube-prometheus-stack"
-    version    = "41.5.*"
+    version          = "41.5.*"
     create_namespace = false
-    deploy = 1
+    deploy           = 1
   }
   values = [yamlencode({
     prometheusOperator = {

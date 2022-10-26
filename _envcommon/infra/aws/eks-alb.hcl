@@ -13,7 +13,6 @@ terraform {
   source = "${local.source_module.base_url}${local.source_module.version}"
 }
 
-
 # ---------------------------------------------------------------------------------------------------------------------
 # Locals are named constants that are reusable within the configuration.
 # ---------------------------------------------------------------------------------------------------------------------
@@ -27,7 +26,7 @@ locals {
   # Expose the base source URL so different versions of the module can be deployed in different environments. This will
   # be used to construct the terraform block in the child terragrunt configurations.
   module_vars   = read_terragrunt_config(find_in_parent_folders("modules.hcl"))
-  source_module = local.module_vars.locals.helm_release
+  source_module = local.module_vars.locals.aws_k8s_helm_w_iam
 
   # Automatically load account-level variables
   account_vars = read_terragrunt_config(find_in_parent_folders("account.hcl"))
@@ -50,13 +49,12 @@ locals {
 }
 
 dependency "eks" {
-  config_path = "${get_terragrunt_dir()}/../../aws/infra/eks/"
+  config_path = "${get_terragrunt_dir()}/../eks/"
 }
 dependencies {
   paths = [
-    "${get_terragrunt_dir()}/../../aws/infra/eks-alb/",
-    "${get_terragrunt_dir()}/../../aws/infra/eks-externaldns/",
-    "${get_terragrunt_dir()}/../k8s-prom-crds/"
+    "${get_terragrunt_dir()}/../eks-externaldns/",
+    "${get_terragrunt_dir()}/../../../common/k8s-prom-crds/"
   ]
 }
 
@@ -66,18 +64,17 @@ dependencies {
 # environments.
 # ---------------------------------------------------------------------------------------------------------------------
 inputs = {
+  repository       = "https://aws.github.io/eks-charts"
+  uniqueName       = "logscale-${local.env}"
+  namespace        = "alb-manager"
+  release          = "cw"
+  chart            = "aws-load-balancer-controller"
+  chart_version    = "1.4.*"
+  create_namespace = true
 
-  repository = "https://charts.jetstack.io"
-  namespace  = "cert-manager"
+  attach_load_balancer_controller_policy = true
 
-  app = {
-    name             = "cw"
-    chart            = "cert-manager"
-    version          = "1.9.*"
-    create_namespace = true
-    deploy           = 1
-  }
-
+  sa = "cw-aws-load-balancer-controller"
 
   values = [<<EOF
 topologySpreadConstraints:
@@ -85,26 +82,23 @@ topologySpreadConstraints:
     topologyKey: topology.kubernetes.io/zone
     whenUnsatisfiable: DoNotSchedule
 
-installCRDs: true
+clusterName: logscale-${local.env}
+enableCertManager: true
 
-replicaCount: 2
-webhook:
-  replicaCount: 2
-cainjector:
-  replicaCount: 2
-serviceAccount:
-  create: true
-  name: cert-manager
-admissionWebhooks:
-  certManager:
-    enabled: true
+rbac:
+    serviceAccount:
+        create: true
+        name: alb-manager
 
-prometheus:
-  enabled: true
-  servicemonitor:
-    enabled: true
-    
+podDisruptionBudget: 
+    maxUnavailable: 1
+
 EOF 
   ]
 
+  value_arn = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
+
+  eks_oidc_provider_arn = dependency.eks.outputs.eks_oidc_provider_arn
+
+  zone_id = local.zone_id
 }

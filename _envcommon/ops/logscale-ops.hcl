@@ -53,57 +53,25 @@ locals {
   humio_sso_signOnUrl      = local.humio.locals.humio_sso_signOnUrl
   humio_sso_entityID       = local.humio.locals.humio_sso_entityID
 }
-
-generate "provider" {
-  path      = "provider.tf"
-  if_exists = "overwrite_terragrunt"
-  contents  = <<EOF
-provider "aws" {
-  region = "${local.aws_region}"
-
-  # Only these AWS Account IDs may be operated on by this template
-  allowed_account_ids = ["${local.account_id}"]
-}
-provider "kubernetes" {
-  
-  host                   = "${dependency.eks.outputs.eks_endpoint}"
-  cluster_ca_certificate = base64decode("${dependency.eks.outputs.eks_cluster_certificate_authority_data}")
-
-  exec {
-    api_version = "client.authentication.k8s.io/v1"
-    command     = "aws"
-    # This requires the awscli to be installed locally where Terraform is executed
-    args = ["eks", "get-token", "--cluster-name", "logscale-${local.env}"]
-  }
-}
-provider "kubectl" {
-  apply_retry_count      = 10
-  load_config_file       = false
-
-  host                   = "${dependency.eks.outputs.eks_endpoint}"
-  cluster_ca_certificate = base64decode("${dependency.eks.outputs.eks_cluster_certificate_authority_data}")
-
-  exec {
-    api_version = "client.authentication.k8s.io/v1beta1"
-    command     = "aws"
-    # This requires the awscli to be installed locally where Terraform is executed
-    args = ["eks", "get-token", "--cluster-name", "logscale-${local.env}"]
-  }
-}
-EOF
-}
 dependency "eks" {
-  config_path = "${get_terragrunt_dir()}/../../platform/aws-eks/"
-}
-dependency "logscaleOpsProject" {
-  config_path  = "${get_terragrunt_dir()}/../../cluster-wide/logscale-ops-project/"
-  skip_outputs = true
+  config_path = "${get_terragrunt_dir()}/../../aws/infra/eks/"
 }
 dependency "acm_ui" {
-  config_path = "${get_terragrunt_dir()}/../../platform/aws-acm-ui/"
+  config_path = "${get_terragrunt_dir()}/../../aws/infra/acm-ui/"
+}
+dependency "logscaleOpsProject" {
+  config_path  = "${get_terragrunt_dir()}/../logscale-ops-project/"
+  skip_outputs = true
 }
 dependency "bucket" {
-  config_path = "${get_terragrunt_dir()}/../../ops/aws-logscale-ops-bucket_iam/"
+  config_path = "${get_terragrunt_dir()}/../aws-logscale-ops-bucket_iam/"
+}
+dependencies {
+  paths = [
+    "${get_terragrunt_dir()}/../logscale-ops-zookeeper/",
+    "${get_terragrunt_dir()}/../logscale-ops-otel/",
+    "${get_terragrunt_dir()}/../logscale-ops-strimzi/"
+  ]
 }
 # ---------------------------------------------------------------------------------------------------------------------
 # MODULE PARAMETERS

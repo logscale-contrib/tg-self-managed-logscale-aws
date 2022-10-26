@@ -17,16 +17,17 @@ include "generate_aws" {
   path   = "${dirname(find_in_parent_folders())}/_envcommon/infra/aws/generate_aws.hcl"
   expose = true
 }
+include "generate_k8s" {
+  path   = "${dirname(find_in_parent_folders())}/_envcommon/infra/aws/generate_k8s_kubernetes_only.hcl"
+  expose = true
+}
 
 # Include the envcommon configuration for the component. The envcommon configuration contains settings that are common
 # for the component across all environments.
 include "envcommon" {
-  path   = "${dirname(find_in_parent_folders())}/_envcommon/infra/aws/acm-ui.hcl"
+  path   = "${dirname(find_in_parent_folders())}/_envcommon/ops/logscale-ops.hcl"
   expose = true
 }
-
-
-
 
 # ---------------------------------------------------------------------------------------------------------------------
 # We don't need to override any of the common parameters for this environment, so we don't specify any inputs.

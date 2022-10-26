@@ -13,7 +13,6 @@ terraform {
   source = "${local.source_module.base_url}${local.source_module.version}"
 }
 
-
 # ---------------------------------------------------------------------------------------------------------------------
 # Locals are named constants that are reusable within the configuration.
 # ---------------------------------------------------------------------------------------------------------------------
@@ -38,25 +37,31 @@ locals {
   # Automatically load region-level variables
   admin = read_terragrunt_config(find_in_parent_folders("admin.hcl"))
 
-  dns = read_terragrunt_config(find_in_parent_folders("dns.hcl"))
-
   # Extract the variables we need for easy access
   account_name = local.account_vars.locals.account_name
   account_id   = local.account_vars.locals.aws_account_id
   aws_region   = local.region_vars.locals.aws_region
 
-  zone_id = local.dns.locals.zone_id
+  dns         = read_terragrunt_config(find_in_parent_folders("dns.hcl"))
+  domain_name = local.dns.locals.domain_name
+
+  host_name = "argocd"
 
 }
 
+
 dependency "eks" {
   config_path = "${get_terragrunt_dir()}/../../aws/infra/eks/"
+}
+dependency "acm_ui" {
+  config_path = "${get_terragrunt_dir()}/../../aws/infra/acm-ui/"
 }
 dependencies {
   paths = [
     "${get_terragrunt_dir()}/../../aws/infra/eks-alb/",
     "${get_terragrunt_dir()}/../../aws/infra/eks-externaldns/",
-    "${get_terragrunt_dir()}/../k8s-prom-crds/"
+    "${get_terragrunt_dir()}/../k8s-prom-crds/",
+    "${get_terragrunt_dir()}/../k8s-ns-argocd/"
   ]
 }
 
@@ -66,45 +71,62 @@ dependencies {
 # environments.
 # ---------------------------------------------------------------------------------------------------------------------
 inputs = {
-
-  repository = "https://charts.jetstack.io"
-  namespace  = "cert-manager"
+  namespace  = "argocd"
+  repository = "https://argoproj.github.io/argo-helm"
 
   app = {
     name             = "cw"
-    chart            = "cert-manager"
-    version          = "1.9.*"
     create_namespace = true
-    deploy           = 1
+
+    chart   = "argo-cd"
+    version = "5.6.1"
+
+    wait   = true
+    deploy = 1
   }
-
-
   values = [<<EOF
-topologySpreadConstraints:
-  - maxSkew: 1
-    topologyKey: topology.kubernetes.io/zone
-    whenUnsatisfiable: DoNotSchedule
-
-installCRDs: true
-
-replicaCount: 2
-webhook:
-  replicaCount: 2
-cainjector:
-  replicaCount: 2
-serviceAccount:
-  create: true
-  name: cert-manager
-admissionWebhooks:
-  certManager:
-    enabled: true
-
-prometheus:
+global:
+  image:
+    tag: v2.5.0-rc3
+argo-cd:
+  config:
+    application.resourceTrackingMethod: annotation
+redis-ha:
   enabled: true
-  servicemonitor:
+
+controller:
+  replicas: 2
+
+repoServer:
+  autoscaling:
     enabled: true
-    
+    minReplicas: 2
+
+applicationSet:
+  replicas: 2
+
+server:
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+  extraArgs:
+  - --insecure
+  service:
+   type: ClusterIP
+  ingress:
+    enabled: true
+    hosts:
+      - ${local.host_name}.${local.domain_name}
+    ingressClassName: alb
+    annotations:
+      alb.ingress.kubernetes.io/certificate-arn: ${dependency.acm_ui.outputs.acm_certificate_arn}
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+      alb.ingress.kubernetes.io/ssl-redirect: '443'
+      alb.ingress.kubernetes.io/scheme: internet-facing
+      alb.ingress.kubernetes.io/target-type: ip
+      alb.ingress.kubernetes.io/group.name: logscale-${local.env}
+      external-dns.alpha.kubernetes.io/hostname: ${local.host_name}.${local.domain_name}
+
 EOF 
   ]
-
 }

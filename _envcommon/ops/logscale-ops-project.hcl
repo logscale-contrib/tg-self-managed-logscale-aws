@@ -13,7 +13,6 @@ terraform {
   source = "${local.source_module.base_url}${local.source_module.version}"
 }
 
-
 # ---------------------------------------------------------------------------------------------------------------------
 # Locals are named constants that are reusable within the configuration.
 # ---------------------------------------------------------------------------------------------------------------------
@@ -27,7 +26,7 @@ locals {
   # Expose the base source URL so different versions of the module can be deployed in different environments. This will
   # be used to construct the terraform block in the child terragrunt configurations.
   module_vars   = read_terragrunt_config(find_in_parent_folders("modules.hcl"))
-  source_module = local.module_vars.locals.helm_release
+  source_module = local.module_vars.locals.argocd_project
 
   # Automatically load account-level variables
   account_vars = read_terragrunt_config(find_in_parent_folders("account.hcl"))
@@ -38,14 +37,15 @@ locals {
   # Automatically load region-level variables
   admin = read_terragrunt_config(find_in_parent_folders("admin.hcl"))
 
-  dns = read_terragrunt_config(find_in_parent_folders("dns.hcl"))
-
   # Extract the variables we need for easy access
   account_name = local.account_vars.locals.account_name
   account_id   = local.account_vars.locals.aws_account_id
   aws_region   = local.region_vars.locals.aws_region
 
-  zone_id = local.dns.locals.zone_id
+  dns         = read_terragrunt_config(find_in_parent_folders("dns.hcl"))
+  domain_name = local.dns.locals.domain_name
+
+  host_name = "argocd"
 
 }
 
@@ -54,10 +54,12 @@ dependency "eks" {
 }
 dependencies {
   paths = [
-    "${get_terragrunt_dir()}/../../aws/infra/eks-alb/",
-    "${get_terragrunt_dir()}/../../aws/infra/eks-externaldns/",
-    "${get_terragrunt_dir()}/../k8s-prom-crds/"
+    "${get_terragrunt_dir()}/../logscale-ops-ns/"
   ]
+}
+dependency "argocd" {
+  config_path  = "${get_terragrunt_dir()}/../../common/k8s-argocd/"
+  skip_outputs = true
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -66,45 +68,40 @@ dependencies {
 # environments.
 # ---------------------------------------------------------------------------------------------------------------------
 inputs = {
+  name        = "logscale-ops"
+  namespace   = "argocd"
+  description = "Used for cluster wide resources"
+  repository  = "https://argoproj.github.io/argo-helm"
 
-  repository = "https://charts.jetstack.io"
-  namespace  = "cert-manager"
-
-  app = {
-    name             = "cw"
-    chart            = "cert-manager"
-    version          = "1.9.*"
-    create_namespace = true
-    deploy           = 1
-  }
-
-
-  values = [<<EOF
-topologySpreadConstraints:
-  - maxSkew: 1
-    topologyKey: topology.kubernetes.io/zone
-    whenUnsatisfiable: DoNotSchedule
-
-installCRDs: true
-
-replicaCount: 2
-webhook:
-  replicaCount: 2
-cainjector:
-  replicaCount: 2
-serviceAccount:
-  create: true
-  name: cert-manager
-admissionWebhooks:
-  certManager:
-    enabled: true
-
-prometheus:
-  enabled: true
-  servicemonitor:
-    enabled: true
-    
-EOF 
+  destinations = [
+    {
+      server    = "https://kubernetes.default.svc"
+      name      = "in-cluster"
+      namespace = "logscale-ops"
+    },
+    {
+      server    = "https://kubernetes.default.svc"
+      name      = "in-cluster"
+      namespace = "monitoring"
+    }
   ]
-
+  namespaceResourceWhitelist = [
+    {
+      "group" : "*"
+      "kind" : "*"
+    }
+  ]
+  cluster_resource_whitelist = [
+    {
+      "group" : "rbac.authorization.k8s.io"
+      "kind" : "ClusterRole"
+    },
+    {
+      "group" : "rbac.authorization.k8s.io"
+      "kind" : "ClusterRoleBinding"
+    }
+  ]
+  "sourceRepos" = [
+    "*",
+  ]
 }

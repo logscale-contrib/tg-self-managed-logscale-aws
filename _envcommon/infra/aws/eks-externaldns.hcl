@@ -13,7 +13,6 @@ terraform {
   source = "${local.source_module.base_url}${local.source_module.version}"
 }
 
-
 # ---------------------------------------------------------------------------------------------------------------------
 # Locals are named constants that are reusable within the configuration.
 # ---------------------------------------------------------------------------------------------------------------------
@@ -27,7 +26,7 @@ locals {
   # Expose the base source URL so different versions of the module can be deployed in different environments. This will
   # be used to construct the terraform block in the child terragrunt configurations.
   module_vars   = read_terragrunt_config(find_in_parent_folders("modules.hcl"))
-  source_module = local.module_vars.locals.helm_release
+  source_module = local.module_vars.locals.aws_k8s_helm_w_iam
 
   # Automatically load account-level variables
   account_vars = read_terragrunt_config(find_in_parent_folders("account.hcl"))
@@ -50,34 +49,26 @@ locals {
 }
 
 dependency "eks" {
-  config_path = "${get_terragrunt_dir()}/../../aws/infra/eks/"
+  config_path = "${get_terragrunt_dir()}/../eks/"
 }
-dependencies {
-  paths = [
-    "${get_terragrunt_dir()}/../../aws/infra/eks-alb/",
-    "${get_terragrunt_dir()}/../../aws/infra/eks-externaldns/",
-    "${get_terragrunt_dir()}/../k8s-prom-crds/"
-  ]
-}
-
 # ---------------------------------------------------------------------------------------------------------------------
 # MODULE PARAMETERS
 # These are the variables we have to pass in to use the module. This defines the parameters that are common across all
 # environments.
 # ---------------------------------------------------------------------------------------------------------------------
 inputs = {
+  uniqueName = "logscale-${local.env}"
 
-  repository = "https://charts.jetstack.io"
-  namespace  = "cert-manager"
+  attach_external_dns_policy = true
 
-  app = {
-    name             = "cw"
-    chart            = "cert-manager"
-    version          = "1.9.*"
-    create_namespace = true
-    deploy           = 1
-  }
-
+  repository       = "https://charts.bitnami.com/bitnami"
+  release          = "cw"
+  chart            = "external-dns"
+  chart_version    = "6.5.*"
+  namespace        = "external-dns"
+  create_namespace = true
+  sa               = "external-dns"
+  project          = "cluster-wide"
 
   values = [<<EOF
 topologySpreadConstraints:
@@ -85,26 +76,17 @@ topologySpreadConstraints:
     topologyKey: topology.kubernetes.io/zone
     whenUnsatisfiable: DoNotSchedule
 
-installCRDs: true
-
 replicaCount: 2
-webhook:
-  replicaCount: 2
-cainjector:
-  replicaCount: 2
 serviceAccount:
-  create: true
-  name: cert-manager
-admissionWebhooks:
-  certManager:
-    enabled: true
+  name: external-dns
+txtOwnerId: "logscale-${local.env}"
 
-prometheus:
-  enabled: true
-  servicemonitor:
-    enabled: true
-    
 EOF 
   ]
 
+  value_arn = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
+
+  eks_oidc_provider_arn = dependency.eks.outputs.eks_oidc_provider_arn
+
+  zone_id = local.zone_id
 }

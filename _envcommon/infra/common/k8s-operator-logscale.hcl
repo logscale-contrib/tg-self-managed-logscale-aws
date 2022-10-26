@@ -13,7 +13,6 @@ terraform {
   source = "${local.source_module.base_url}${local.source_module.version}"
 }
 
-
 # ---------------------------------------------------------------------------------------------------------------------
 # Locals are named constants that are reusable within the configuration.
 # ---------------------------------------------------------------------------------------------------------------------
@@ -38,25 +37,24 @@ locals {
   # Automatically load region-level variables
   admin = read_terragrunt_config(find_in_parent_folders("admin.hcl"))
 
-  dns = read_terragrunt_config(find_in_parent_folders("dns.hcl"))
-
   # Extract the variables we need for easy access
   account_name = local.account_vars.locals.account_name
   account_id   = local.account_vars.locals.aws_account_id
   aws_region   = local.region_vars.locals.aws_region
 
-  zone_id = local.dns.locals.zone_id
-
 }
-
 dependency "eks" {
   config_path = "${get_terragrunt_dir()}/../../aws/infra/eks/"
+
 }
 dependencies {
   paths = [
+    "${get_terragrunt_dir()}/../k8s-linkerd-cp",
+    "${get_terragrunt_dir()}/../k8s-ns-operator-logscale",
+    "${get_terragrunt_dir()}/../k8s-operator-otel",
     "${get_terragrunt_dir()}/../../aws/infra/eks-alb/",
-    "${get_terragrunt_dir()}/../../aws/infra/eks-externaldns/",
-    "${get_terragrunt_dir()}/../k8s-prom-crds/"
+    "${get_terragrunt_dir()}/../k8s-prom-crds/",
+    "${get_terragrunt_dir()}/../k8s-certmanager/"
   ]
 }
 
@@ -67,44 +65,21 @@ dependencies {
 # ---------------------------------------------------------------------------------------------------------------------
 inputs = {
 
-  repository = "https://charts.jetstack.io"
-  namespace  = "cert-manager"
 
+  repository = "https://humio.github.io/humio-operator"
+  namespace  = "logscale-operator"
   app = {
     name             = "cw"
-    chart            = "cert-manager"
-    version          = "1.9.*"
-    create_namespace = true
+    chart            = "humio-operator"
+    version          = "0.15.*"
+    create_namespace = false
     deploy           = 1
   }
-
-
   values = [<<EOF
-topologySpreadConstraints:
-  - maxSkew: 1
-    topologyKey: topology.kubernetes.io/zone
-    whenUnsatisfiable: DoNotSchedule
-
-installCRDs: true
-
-replicaCount: 2
-webhook:
-  replicaCount: 2
-cainjector:
-  replicaCount: 2
-serviceAccount:
-  create: true
-  name: cert-manager
-admissionWebhooks:
-  certManager:
-    enabled: true
-
-prometheus:
-  enabled: true
-  servicemonitor:
-    enabled: true
-    
-EOF 
+  prometheus:
+    serviceMonitor:
+      enabled: true  
+EOF    
   ]
 
 }
