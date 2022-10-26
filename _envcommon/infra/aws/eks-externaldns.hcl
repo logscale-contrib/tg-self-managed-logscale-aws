@@ -45,7 +45,7 @@ locals {
   aws_region   = local.region_vars.locals.aws_region
 
   zone_id = local.dns.locals.zone_id
-
+  
 }
 
 dependency "eks" {

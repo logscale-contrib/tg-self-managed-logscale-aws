@@ -16,7 +16,7 @@ locals {
 
   aws_k8s_helm_w_iam = {
     base_url = "git::git@github.com:logscale-contrib/tf-self-managed-logscale-aws-k8s-helm-with-iam.git"
-    version  = "?ref=v2.1.6"
+    version  = "?ref=v2.1.8"
   }
   eks_olm = {
     base_url = "git::git@github.com:logscale-contrib/terraform-k8s-olm.git"
