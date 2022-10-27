@@ -18,7 +18,7 @@ include "generate_aws" {
   expose = true
 }
 include "generate_k8s" {
-  path   = "${dirname(find_in_parent_folders())}/_envcommon/infra/aws/generate_k8s_kubernetes_only.hcl"
+  path   = "${dirname(find_in_parent_folders())}/_envcommon/infra/aws/generate_k8s.hcl"
   expose = true
 }
 
