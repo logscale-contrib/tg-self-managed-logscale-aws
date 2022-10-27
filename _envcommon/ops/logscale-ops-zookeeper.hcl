@@ -122,6 +122,14 @@ topologySpreadConstraints:
     whenUnsatisfiable: DoNotSchedule
     labelSelector:
       matchExpressions:
+        - key: app.kubernetes.io/component
+          operator: In
+          values:
+            - "zookeeper"
+        - key: app.kubernetes.io/name
+          operator: In
+          values:
+            - "zookeeper"
         - key: app.kubernetes.io/instance
           operator: In
           values:

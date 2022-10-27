@@ -61,6 +61,6 @@ inputs = {
   namespace             = "logscale-ops"
   sa                    = "logscale-ops"
   eks_oidc_provider_arn = dependency.eks.outputs.eks_oidc_provider_arn
-
+  force_destroy         = true
 
 }

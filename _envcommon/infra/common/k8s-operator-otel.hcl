@@ -70,17 +70,22 @@ inputs = {
   app = {
     chart            = "opentelemetry-operator"
     name             = "cw"
-    version          = "0.16.*"
+    version          = "0.15.*"
     create_namespace = false
     deploy           = 1
   }
 
-values = [ <<YAML
+  values = [<<YAML
 replicaCount: 2
 manager:
   serviceMonitor:
     enabled: true
-    
+#   env:
+#     ENABLE_WEBHOOKS: "true"    
+# admissionWebhooks:
+#   certManager: 
+#     enabled: false
+#   create: false    
 YAML
-]
+  ]
 }

@@ -41,19 +41,19 @@ dependency "eks" {
 # environments.
 # ---------------------------------------------------------------------------------------------------------------------
 inputs = {
-  repository                  = "oci://public.ecr.aws/karpenter"
-  uniqueName                  = "logscale-${local.env}"
-  namespace                   = "karpenter"
-  release                     = "cw"
-  chart                       = "karpenter"
-  chart_version               = "v0.18.1"
-  create_namespace            = true
-  eks_cluster_id              = dependency.eks.outputs.eks_cluster_id
-  eks_oidc_provider_arn       = dependency.eks.outputs.eks_oidc_provider_arn
-  eks_karpenter_iam_role_name = dependency.eks.outputs.eks_karpenter_iam_role_name
-  eks_karpenter_iam_role_arn  = dependency.eks.outputs.eks_karpenter_iam_role_arn
+  repository                         = "oci://public.ecr.aws/karpenter"
+  uniqueName                         = "logscale-${local.env}"
+  namespace                          = "karpenter"
+  release                            = "cw"
+  chart                              = "karpenter"
+  chart_version                      = "v0.18.1"
+  create_namespace                   = true
+  eks_cluster_id                     = dependency.eks.outputs.eks_cluster_id
+  eks_oidc_provider_arn              = dependency.eks.outputs.eks_oidc_provider_arn
+  eks_karpenter_iam_role_name        = dependency.eks.outputs.eks_karpenter_iam_role_name
+  eks_karpenter_iam_role_arn         = dependency.eks.outputs.eks_karpenter_iam_role_arn
   attach_karpenter_controller_policy = true
-  sa = "cw-karpenter"
+  sa                                 = "cw-karpenter"
 
   value_arn = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
 
