@@ -54,7 +54,6 @@ dependency "eks" {
 }
 dependencies {
   paths = [
-    "${get_terragrunt_dir()}/../../aws/infra/eks-alb/",
     "${get_terragrunt_dir()}/../../aws/infra/eks-externaldns/",
     "${get_terragrunt_dir()}/../k8s-prom-crds/"
   ]

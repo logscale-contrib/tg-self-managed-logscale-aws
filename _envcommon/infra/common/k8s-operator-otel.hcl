@@ -75,5 +75,12 @@ inputs = {
     deploy           = 1
   }
 
-
+values = [ <<YAML
+replicaCount: 2
+manager:
+  serviceMonitor:
+    enabled: true
+    
+YAML
+]
 }

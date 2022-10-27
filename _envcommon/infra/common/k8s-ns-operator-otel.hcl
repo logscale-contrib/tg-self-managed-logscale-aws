@@ -55,6 +55,6 @@ dependency "eks" {
 inputs = {
   name = "otel-operator"
   annotations = {
-    "linkerd.io/inject" = "enabled"
+    "linkerd.io/inject" = "disabled"
   }
 }

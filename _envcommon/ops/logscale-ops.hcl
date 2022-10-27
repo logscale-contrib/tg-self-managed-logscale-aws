@@ -59,10 +59,6 @@ dependency "eks" {
 dependency "acm_ui" {
   config_path = "${get_terragrunt_dir()}/../../aws/infra/acm-ui/"
 }
-dependency "logscaleOpsProject" {
-  config_path  = "${get_terragrunt_dir()}/../logscale-ops-project/"
-  skip_outputs = true
-}
 dependency "bucket" {
   config_path = "${get_terragrunt_dir()}/../aws-logscale-ops-bucket_iam/"
 }
@@ -70,7 +66,8 @@ dependencies {
   paths = [
     "${get_terragrunt_dir()}/../logscale-ops-zookeeper/",
     "${get_terragrunt_dir()}/../logscale-ops-otel/",
-    "${get_terragrunt_dir()}/../logscale-ops-strimzi/"
+    "${get_terragrunt_dir()}/../logscale-ops-strimzi/",
+    "${get_terragrunt_dir()}/../logscale-ops-project/"
   ]
 }
 # ---------------------------------------------------------------------------------------------------------------------

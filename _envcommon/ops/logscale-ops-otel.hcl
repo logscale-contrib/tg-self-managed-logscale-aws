@@ -46,12 +46,13 @@ locals {
 dependency "eks" {
   config_path = "${get_terragrunt_dir()}/../../aws/infra/eks/"
 }
-dependency "logscaleOpsProject" {
-  config_path  = "${get_terragrunt_dir()}/../logscale-ops-project/"
-  skip_outputs = true
-}
 dependency "acm_ui" {
   config_path = "${get_terragrunt_dir()}/../../aws/infra/acm-ui/"
+}
+dependencies {
+  paths = [
+    "${get_terragrunt_dir()}/../logscale-ops-project/"
+  ]
 }
 # ---------------------------------------------------------------------------------------------------------------------
 # MODULE PARAMETERS
