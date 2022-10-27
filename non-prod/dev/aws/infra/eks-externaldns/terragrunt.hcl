@@ -16,14 +16,8 @@ include "root" {
 
 # Include the envcommon configuration for the component. The envcommon configuration contains settings that are common
 # for the component across all environments.
-include "generate_aws" {
-  path   = "${dirname(find_in_parent_folders())}/_envcommon/infra/aws/generate_aws.hcl"
-  expose = true
-}
-include "generate_k8s" {
-  path   = "${dirname(find_in_parent_folders())}/_envcommon/infra/aws/generate_k8s.hcl"
-  expose = true
-}
+
+
 include "envcommon" {
   path   = "${dirname(find_in_parent_folders())}/_envcommon/infra/aws/eks-externaldns.hcl"
   expose = true

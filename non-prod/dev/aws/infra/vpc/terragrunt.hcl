@@ -13,10 +13,7 @@
 include "root" {
   path = find_in_parent_folders()
 }
-include "generate_aws" {
-  path   = "${dirname(find_in_parent_folders())}/_envcommon/infra/aws/generate_aws.hcl"
-  expose = true
-}
+
 # Include the envcommon configuration for the component. The envcommon configuration contains settings that are common
 # for the component across all environments.
 include "envcommon" {
