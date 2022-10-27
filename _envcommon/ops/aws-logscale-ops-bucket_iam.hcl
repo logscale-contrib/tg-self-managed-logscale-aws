@@ -43,49 +43,13 @@ locals {
   account_id   = local.account_vars.locals.aws_account_id
   aws_region   = local.region_vars.locals.aws_region
 }
-
-
-generate "provider" {
-  path      = "provider.tf"
-  if_exists = "overwrite_terragrunt"
-  contents  = <<EOF
-provider "aws" {
-  region = "${local.aws_region}"
-
-  # Only these AWS Account IDs may be operated on by this template
-  allowed_account_ids = ["${local.account_id}"]
-}
-provider "kubernetes" {
-  
-  host                   = "${dependency.eks.outputs.eks_endpoint}"
-  cluster_ca_certificate = base64decode("${dependency.eks.outputs.eks_cluster_certificate_authority_data}")
-
-  exec {
-    api_version = "client.authentication.k8s.io/v1"
-    command     = "aws"
-    # This requires the awscli to be installed locally where Terraform is executed
-    args = ["eks", "get-token", "--cluster-name", "logscale-${local.env}"]
-  }
-}
-provider "kubectl" {
-  apply_retry_count      = 10
-  load_config_file       = false
-
-  host                   = "${dependency.eks.outputs.eks_endpoint}"
-  cluster_ca_certificate = base64decode("${dependency.eks.outputs.eks_cluster_certificate_authority_data}")
-
-  exec {
-    api_version = "client.authentication.k8s.io/v1beta1"
-    command     = "aws"
-    # This requires the awscli to be installed locally where Terraform is executed
-    args = ["eks", "get-token", "--cluster-name", "logscale-${local.env}"]
-  }
-}
-EOF
-}
-
 dependency "eks" {
-  config_path = "${get_terragrunt_dir()}/../../platform/aws-eks/"
+  config_path = "${get_terragrunt_dir()}/../../aws/infra/eks/"
+}
+dependencies {
+  paths = [
+    "${get_terragrunt_dir()}/../logscale-ops-ns/"
+  ]
 }
 # ---------------------------------------------------------------------------------------------------------------------
 # MODULE PARAMETERS
@@ -97,6 +61,6 @@ inputs = {
   namespace             = "logscale-ops"
   sa                    = "logscale-ops"
   eks_oidc_provider_arn = dependency.eks.outputs.eks_oidc_provider_arn
-
+  force_destroy         = true
 
 }
