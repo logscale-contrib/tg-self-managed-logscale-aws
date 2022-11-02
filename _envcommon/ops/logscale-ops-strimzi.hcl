@@ -93,7 +93,7 @@ inputs = {
   repository       = "ghcr.io/logscale-contrib/helm-logscale-strimzi-kafka/charts"
   release          = "ops"
   chart            = "logscale-strimzi-kafka"
-  chart_version    = "1.0.*"
+  chart_version    = "1.1.0"
   namespace        = "logscale-ops"
   create_namespace = false
   project          = "logscale-ops"
@@ -101,6 +101,7 @@ inputs = {
   values = yamldecode(<<EOF
 #Note: Kafka is a subchart
 kafka:
+  allowAutoCreate: false
   # affinity:
   #   nodeAffinity:
   #     requiredDuringSchedulingIgnoredDuringExecution:
@@ -153,7 +154,7 @@ kafka:
   # 100 GB should be the smallest disk used for Kafka this may result in some waste
   storage:
     type: persistent-claim
-    size: 50Gi
+    size: 150Gi
     deleteClaim: true
     #Must be SSD or NVME like storage IOPs is the primary node constraint
     class: ebs-gp3-enc
