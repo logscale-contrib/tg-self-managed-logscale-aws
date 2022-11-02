@@ -124,19 +124,23 @@ inputs = {
 
   release          = "ops"
   chart            = "helm-logscale"
-  chart_version    = "1.0.*"
+  chart_version    = "1.1.8"
   namespace        = "logscale-ops"
   create_namespace = false
   project          = "logscale-ops"
 
   values = {
+    platform = "aws"
     humio = {
       s3mode   = "aws"
+      kafkaManager =  "strimzi"
+      kafkaPrefixEnable = true
+      strimziCluster = "ops-logscale-strimzi-kafka"
       fqdn     = "logscale-ops.${local.domain_name}"
       rootUser = local.humio_rootUser
       license  = local.humio_license
       image = {
-        tag = "1.62.0--SNAPSHOT--build-280495--SHA-2b50497545502a2b0aa8ac4bf47fcdc43a621474"
+        tag = "1.63.0--SNAPSHOT--build-288871--SHA-c3c928734d96903574bc1647d103b14961bf4fd4"
       }
       sso = {
         idpCertificate = local.humio_sso_idpCertificate
