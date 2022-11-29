@@ -102,7 +102,7 @@ inputs = {
 autopurge:
   purgeInterval: 1
 #jvmFlags: "-XX:+HeapDumpOnOutOfMemoryError -XX:OnOutOfMemoryError='kill -9 %p'"
-replicaCount: 5
+replicaCount: 3
 fourlwCommandsWhitelist: srvr, mntr, ruok, stat
 auth:
   client: 
@@ -120,14 +120,18 @@ persistence:
   storageClass: ebs-gp3-enc
   size: 10Gi
 affinity:
-#   nodeAffinity:
-#     requiredDuringSchedulingIgnoredDuringExecution:
-#       nodeSelectorTerms:
-#         - matchExpressions:
-#             - key: beta.humio.com/pool
-#               operator: In
-#               values:
-#                 - compute
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/os
+              operator: In
+              values:
+                - linux
+            - key: kubernetes.io/arch
+              operator: In
+              values:
+                - amd64
   podAntiAffinity:
     requiredDuringSchedulingIgnoredDuringExecution:
       - labelSelector:

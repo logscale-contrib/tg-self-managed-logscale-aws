@@ -93,7 +93,7 @@ inputs = {
   repository       = "ghcr.io/logscale-contrib/helm-logscale-strimzi-kafka/charts"
   release          = "ops"
   chart            = "logscale-strimzi-kafka"
-  chart_version    = "1.2.0"
+  chart_version    = "1.2.3"
   namespace        = "logscale-ops"
   create_namespace = false
   project          = "logscale-ops"
@@ -204,4 +204,13 @@ zookeeper:
 EOF
   )
 
+  ignoreDifferences = [
+    {
+      group = "kafka.strimzi.io"
+      kind  = "KafkaRebalance"
+      jsonPointers = [
+        "/metadata/annotations/strimzi.io/rebalance"
+      ]
+    }
+  ]
 }

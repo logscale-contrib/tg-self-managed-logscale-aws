@@ -168,13 +168,83 @@ spec:
       values: ["c", "m", "r"]
     - key: "karpenter.k8s.aws/instance-cpu"
       operator: In
-      values: ["4", "8", "16", "32"]
+      values: ["1","2","4", "8", "16", "32"]
     - key: "kubernetes.io/arch"
       operator: In
-      values: ["amd64"]
+      values: ["arm64", "amd64"]
     - key: "karpenter.sh/capacity-type" # If not included, the webhook for the AWS cloud provider will default to on-demand
       operator: In
-      values: ["spot", "on-demand"]
+      # values: ["spot", "on-demand"]
+      values: ["on-demand"]
+
+  limits:
+    resources:
+      cpu: "1000"
+      memory: 1000Gi
+
+  # References cloud provider-specific custom resource, see your cloud provider specific documentation
+  providerRef:
+    name: default      
+
+YAML
+    spot    = <<YAML
+apiVersion: karpenter.sh/v1alpha5
+kind: Provisioner
+metadata:
+  name: spot
+  namespace: karpenter
+spec:
+  # Enables consolidation which attempts to reduce cluster cost by both removing un-needed nodes and down-sizing those
+  # that can't be removed.  Mutually exclusive with the ttlSecondsAfterEmpty parameter.
+  consolidation:
+    enabled: true
+
+  # If omitted, the feature is disabled and nodes will never expire.  If set to less time than it requires for a node
+  # to become ready, the node may expire before any pods successfully start.
+  ttlSecondsUntilExpired: 2592000 # 30 Days = 60 * 60 * 24 * 30 Seconds;
+
+  # If omitted, the feature is disabled, nodes will never scale down due to low utilization
+  # ttlSecondsAfterEmpty: 30
+
+  # Priority given to the provisioner when the scheduler considers which provisioner
+  # to select. Higher weights indicate higher priority when comparing provisioners.
+  # Specifying no weight is equivalent to specifying a weight of 0.
+  weight: 9
+
+  # Provisioned nodes will have these taints
+  # Taints may prevent pods from scheduling if they are not tolerated by the pod.
+  # taints:
+  #   - key: example.com/special-taint
+  #     effect: NoSchedule
+
+
+  # Provisioned nodes will have these taints, but pods do not need to tolerate these taints to be provisioned by this
+  # provisioner. These taints are expected to be temporary and some other entity (e.g. a DaemonSet) is responsible for
+  # removing the taint after it has finished initializing the node.
+  # startupTaints:
+  #   - key: example.com/another-taint
+  #     effect: NoSchedule
+
+  # Labels are arbitrary key-values that are applied to all nodes
+  # labels:
+    # billing-team: my-team
+
+  # Requirements that constrain the parameters of provisioned nodes.
+  # These requirements are combined with pod.spec.affinity.nodeAffinity rules.
+  # Operators { In, NotIn } are supported to enable including or excluding values
+  requirements:
+    - key: "karpenter.k8s.aws/instance-category"
+      operator: In
+      values: ["c", "m", "r"]
+    - key: "karpenter.k8s.aws/instance-cpu"
+      operator: In
+      values: ["1","2","4", "8", "16", "32"]
+    - key: "kubernetes.io/arch"
+      operator: In
+      values: ["arm64", "amd64"]
+    - key: "karpenter.sh/capacity-type" # If not included, the webhook for the AWS cloud provider will default to on-demand
+      operator: In
+      values: ["spot"]
 
   limits:
     resources:
@@ -187,5 +257,6 @@ spec:
 
 YAML
   }
+
 
 }

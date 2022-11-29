@@ -90,7 +90,7 @@ inputs = {
   app = {
     name             = "cw"
     chart            = "humio-operator"
-    version          = "0.15.*"
+    version          = "0.16.*"
     create_namespace = false
     deploy           = 1
   }

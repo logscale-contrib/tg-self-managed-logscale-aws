@@ -3,29 +3,27 @@
 # Set account-wide variables. These are automatically pulled in to configure the remote state bucket in the root
 # terragrunt.hcl configuration.
 locals {
-  humio_rootUser           = "ryan@dss-i.com"
+  humio_rootUser           = "ryan.faircloth@logsr.life"
   humio_license            = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzUxMiJ9.eyJpc09lbSI6ZmFsc2UsImF1ZCI6Ikh1bWlvLWxpY2Vuc2UtY2hlY2siLCJzdWIiOiJyeWFuZmFpcmNsb3RoY3Jvd2RzdHJpa2Vjb20iLCJ1aWQiOiJoQkI4aDlSYXBFSkcwQmRxIiwibWF4VXNlcnMiOjk5OTk5OSwiYWxsb3dTQUFTIjpmYWxzZSwibWF4Q29yZXMiOjEwMCwidmFsaWRVbnRpbCI6MTY3MjQ5MTYwMCwiZXhwIjoxNzQ2ODAxNDQzLCJpc1RyaWFsIjpmYWxzZSwiaWF0IjoxNjUyMTkzNDQzLCJtYXhJbmdlc3RHYlBlckRheSI6MTAwfQ.AHQtJPoogNL2YqMsV7BuWQZAoWINW6-Y1hBus5-XSkvnHJqFxgOzrecYq46uy_4PvNrfU2vgXzxaJo6JiMqbmlJNAd94tmsFTakN4wpUmDR5_u3-6PcjngSuVhY2QMopIoYMcnstUZ1ovs4wbUfQ809HwNTiJyyR2AyLzao18_pvaBXO"
   humio_sso_idpCertificate = <<-EOT
-            -----BEGIN CERTIFICATE-----
-            MIIDdDCCAlygAwIBAgIGAYDb5DpjMA0GCSqGSIb3DQEBCwUAMHsxFDASBgNVBAoTC0dvb2dsZSBJ
-            bmMuMRYwFAYDVQQHEw1Nb3VudGFpbiBWaWV3MQ8wDQYDVQQDEwZHb29nbGUxGDAWBgNVBAsTD0dv
-            b2dsZSBGb3IgV29yazELMAkGA1UEBhMCVVMxEzARBgNVBAgTCkNhbGlmb3JuaWEwHhcNMjIwNTE5
-            MTAzNjQ4WhcNMjcwNTE4MTAzNjQ4WjB7MRQwEgYDVQQKEwtHb29nbGUgSW5jLjEWMBQGA1UEBxMN
-            TW91bnRhaW4gVmlldzEPMA0GA1UEAxMGR29vZ2xlMRgwFgYDVQQLEw9Hb29nbGUgRm9yIFdvcmsx
-            CzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A
-            MIIBCgKCAQEAoQEsZwNm5F8v9wP5tHhD9udu95HhVwOjepcXP5oZWtaAn3pSj/eXFJ/XXwLKMzFJ
-            erg9zTu8uqfmWlSqBKjmXDch1jcX5BZI2tYpObQerjSeEjhbJXGRV0Tj/8i7KWk7b5PMasDEmQpW
-            BdEMgqe35hWaatoS5MtSW3rkdMWdqrjdIsOP4n7PQNm86nFY28VmkzN9+luWYxA7AwK09D9JxThE
-            aw5p5VCw1HK0AHoaOyfC1BWt2xL3PtRIWzwLlBUbaFoIIhjahDfex40q0YDw49mzBpIjUENr5Vcv
-            AURNwYZqw+mgG4ViR/GWPPftzyJyEoOOXFwt/gVkx/OxgzssZwIDAQABMA0GCSqGSIb3DQEBCwUA
-            A4IBAQAMZXfKqDT3W5cdlFsC7fRMfN1NSW03j7kK4SsKUXHi/X7COBN2nIP3evx8bkEemT1OT9Rr
-            ZWL+f0NMUBVrKTbrDdhH2tQ0mxYehVeyzXj6jT8avMYhB0c0N5WTXSSW+8Ida+qwZozXFxqda/t/
-            NpKOzwJYXLmH1calsoGnLGtr1su8Z6DrG9cQTbPk5NPxZKAqgT2LW1h4B/mFrf0loTXqTrpKMGaD
-            NeMDalHWBxq77PtxUfUg8K5SP//FgLfiAK56n0uzt/J2MZ6ZbJOnN/HoqGvQ4PvGR998/fH6MrW6
-            +lRTBBUDC0saTEYlp6TWkFib7Ub6LcWbncZJY1O3L2ZZ
-            -----END CERTIFICATE-----
+-----BEGIN CERTIFICATE-----
+MIIC8DCCAdigAwIBAgIQdToowApcL5xFnfZ/9hOS/DANBgkqhkiG9w0BAQsFADA0MTIwMAYDVQQD
+EylNaWNyb3NvZnQgQXp1cmUgRmVkZXJhdGVkIFNTTyBDZXJ0aWZpY2F0ZTAeFw0yMjExMjkxMzA4
+MjhaFw0yNTExMjkxMzA4MjhaMDQxMjAwBgNVBAMTKU1pY3Jvc29mdCBBenVyZSBGZWRlcmF0ZWQg
+U1NPIENlcnRpZmljYXRlMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvYCM+5G4dRFu
+Tc6Ct9hDPhqp+RXjh5cli/QTh5qREfGTA2sKB1hjOpU58mI4pfVU6CE1JhvyJ4jIP5S7J0mYd34G
+jWkpY4u5NGkr+y0bN3u3eb0DDOEbsy/bYOaJvzOauiF0F4y7VefswyhMa7brYzGZsfeFjAQPvAes
+MlMuC2M1Is60hGUlRUuj9sXoiIhRTRsWF1WME3ve6V6HzTDsJ9OeE64G9Q2lcqrV2IbfX5Zi9NN1
+MfL3rINajrZGYt7XeXMdF5/IJntso5CRLKB0Bt3HQKoLD3oVBiLzgRjwsaScNetdOmAnHEjZ/+8n
+EECEb34kdS6W5SaBTlFdV/P/iQIDAQABMA0GCSqGSIb3DQEBCwUAA4IBAQAkUY5omLXzywc+KxGW
+5jW6B8Jj9qs9mr/dlmcKwDlCfqKttDJKp/V7KC6teZvWjko4az2vFdAzd26nrubjG2F7Vs/i29Nn
+G8xiSvsG9yizoZ4dmC6xBdazG2rEW7BMK/TE9cLZCswexXn2eN+yWJ7wSpjOTw8EP0JGaJaTXIxZ
+GXMMvJVyk2Qh0agqhc0R84I/duO5gnUXYbri0sK3I5IVXzfd/SXD5+1tFAERUVBfZEaj8MgvcQB8
+PwiJAJnBXVEKc6vd4uhhNGWru8Lra8Nk0gqI8EgVcaNSxGyrv8u+qRuImdfoLza8gg57+JaPgmsJ
+xCrwUp80ypIUorNCONuy
+-----END CERTIFICATE-----
 EOT
 
-  humio_sso_signOnUrl = "https://accounts.google.com/o/saml2/idp?idpid=C011isbhl"
-  humio_sso_entityID  = "https://accounts.google.com/o/saml2?idpid=C011isbhl"
+  humio_sso_signOnUrl = "https://login.microsoftonline.com/4d40b7e0-fca8-48d9-8fea-3d117a06b2a7/saml2"
+  humio_sso_entityID  = "https://sts.windows.net/4d40b7e0-fca8-48d9-8fea-3d117a06b2a7/"
 }

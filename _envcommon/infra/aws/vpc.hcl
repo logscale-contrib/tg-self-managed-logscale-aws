@@ -41,7 +41,7 @@ inputs = {
   name = "logscale-${local.env}"
   cidr = "10.0.0.0/16"
 
-  azs             = ["us-east-2a", "us-east-2b", "us-east-2c"]
+  azs             = ["us-east-1a", "us-east-1b", "us-east-1c"]
   private_subnets = ["10.0.0.0/20", "10.0.16.0/20", "10.0.32.0/20"]
   public_subnets  = ["10.0.48.0/20", "10.0.64.0/20", "10.0.80.0/20"]
 
@@ -60,13 +60,15 @@ inputs = {
   # private_subnet_ipv6_prefixes = [3, 4, 5]
 
   public_subnet_tags = {
-    "kubernetes.io/cluster/logscale-${local.env}" = "shared"
-    "kubernetes.io/role/elb"                      = "1"
+    "kubernetes.io/cluster/logscale-${local.env}"  = "shared"
+    "kubernetes.io/role/elb"                       = "1"
+    "karpenter.sh/discovery/logscale-${local.env}" = "logscale-${local.env}"
   }
 
   private_subnet_tags = {
-    "kubernetes.io/cluster/logscale-${local.env}" = "shared"
-    "kubernetes.io/role/internal-elb"             = "1"
+    "kubernetes.io/cluster/logscale-${local.env}"  = "shared"
+    "kubernetes.io/role/internal-elb"              = "1"
+    "karpenter.sh/discovery/logscale-${local.env}" = "logscale-${local.env}"
   }
 
 }
