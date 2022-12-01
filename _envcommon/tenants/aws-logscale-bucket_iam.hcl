@@ -42,13 +42,19 @@ locals {
   account_name = local.account_vars.locals.account_name
   account_id   = local.account_vars.locals.aws_account_id
   aws_region   = local.region_vars.locals.aws_region
+
+  # Automatically load region-level variables
+  tenant_vars    = read_terragrunt_config(find_in_parent_folders("tenant.hcl"))
+  tenant_id      = local.tenant_vars.locals.tenant_id
+  tenant_release = local.tenant_vars.locals.tenant_release
+
 }
 dependency "eks" {
-  config_path = "${get_terragrunt_dir()}/../../aws/infra/eks/"
+  config_path = "${get_terragrunt_dir()}/../../../aws/infra/eks/"
 }
 dependencies {
   paths = [
-    "${get_terragrunt_dir()}/../logscale-ops-ns/"
+    "${get_terragrunt_dir()}/../logscale-ns/"
   ]
 }
 # ---------------------------------------------------------------------------------------------------------------------
@@ -57,9 +63,9 @@ dependencies {
 # environments.
 # ---------------------------------------------------------------------------------------------------------------------
 inputs = {
-  uniqueName            = "logscale-${local.env}-ops"
-  namespace             = "logscale-ops"
-  sa                    = "logscale-ops"
+  uniqueName            = "logscale-${local.env}${local.tenant_release}"
+  namespace             = "logscale${local.tenant_id}"
+  sa                    = "logscale${local.tenant_id}"
   eks_oidc_provider_arn = dependency.eks.outputs.eks_oidc_provider_arn
   force_destroy         = true
 

@@ -13,7 +13,6 @@ terraform {
   source = "${local.source_module.base_url}${local.source_module.version}"
 }
 
-
 # ---------------------------------------------------------------------------------------------------------------------
 # Locals are named constants that are reusable within the configuration.
 # ---------------------------------------------------------------------------------------------------------------------
@@ -27,7 +26,7 @@ locals {
   # Expose the base source URL so different versions of the module can be deployed in different environments. This will
   # be used to construct the terraform block in the child terragrunt configurations.
   module_vars   = read_terragrunt_config(find_in_parent_folders("modules.hcl"))
-  source_module = local.module_vars.locals.aws_k8s_logscale_bucket_with_iam
+  source_module = local.module_vars.locals.k8s_ns
 
   # Automatically load account-level variables
   account_vars = read_terragrunt_config(find_in_parent_folders("account.hcl"))
@@ -42,14 +41,31 @@ locals {
   account_name = local.account_vars.locals.account_name
   account_id   = local.account_vars.locals.aws_account_id
   aws_region   = local.region_vars.locals.aws_region
+
+  # Automatically load region-level variables
+  tenant_vars = read_terragrunt_config(find_in_parent_folders("tenant.hcl"))
+  tenant_id   = local.tenant_vars.locals.tenant_id
+
 }
 dependency "eks" {
-  config_path = "${get_terragrunt_dir()}/../../aws/infra/eks/"
+  config_path = "${get_terragrunt_dir()}/../../../aws/infra/eks/"
 }
-dependencies {
-  paths = [
-    "${get_terragrunt_dir()}/../logscale-ops-ns/"
-  ]
+generate "provider" {
+  path      = "provider_k8s.tf"
+  if_exists = "overwrite_terragrunt"
+  contents  = <<EOF
+provider "kubernetes" {
+  
+  host                   = "${dependency.eks.outputs.eks_endpoint}"
+  cluster_ca_certificate = base64decode("${dependency.eks.outputs.eks_cluster_certificate_authority_data}")
+  exec {
+    api_version = "client.authentication.k8s.io/v1"
+    command     = "aws"
+    # This requires the awscli to be installed locally where Terraform is executed
+    args = ["eks", "get-token", "--cluster-name", "logscale-${local.env}"]
+  }
+}
+EOF
 }
 # ---------------------------------------------------------------------------------------------------------------------
 # MODULE PARAMETERS
@@ -57,10 +73,8 @@ dependencies {
 # environments.
 # ---------------------------------------------------------------------------------------------------------------------
 inputs = {
-  uniqueName            = "logscale-${local.env}-ops"
-  namespace             = "logscale-ops"
-  sa                    = "logscale-ops"
-  eks_oidc_provider_arn = dependency.eks.outputs.eks_oidc_provider_arn
-  force_destroy         = true
-
+  name = "logscale${local.tenant_id}"
+  annotations = {
+    "linkerd.io/inject" = "enabled"
+  }
 }

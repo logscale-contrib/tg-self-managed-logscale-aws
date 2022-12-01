@@ -52,22 +52,27 @@ locals {
   humio_sso_idpCertificate = local.humio.locals.humio_sso_idpCertificate
   humio_sso_signOnUrl      = local.humio.locals.humio_sso_signOnUrl
   humio_sso_entityID       = local.humio.locals.humio_sso_entityID
+
+  # Automatically load region-level variables
+  tenant_vars    = read_terragrunt_config(find_in_parent_folders("tenant.hcl"))
+  tenant_id      = local.tenant_vars.locals.tenant_id
+  tenant_release = local.tenant_vars.locals.tenant_release
 }
 dependency "eks" {
-  config_path = "${get_terragrunt_dir()}/../../aws/infra/eks/"
+  config_path = "${get_terragrunt_dir()}/../../../aws/infra/eks/"
 }
 dependency "acm_ui" {
-  config_path = "${get_terragrunt_dir()}/../../aws/infra/acm-ui/"
+  config_path = "${get_terragrunt_dir()}/../../../aws/infra/acm-ui/"
 }
 dependency "bucket" {
-  config_path = "${get_terragrunt_dir()}/../aws-logscale-ops-bucket_iam/"
+  config_path = "${get_terragrunt_dir()}/../aws-logscale-bucket_iam/"
 }
 dependencies {
   paths = [
-    "${get_terragrunt_dir()}/../logscale-ops-zookeeper/",
-    "${get_terragrunt_dir()}/../logscale-ops-otel/",
-    "${get_terragrunt_dir()}/../logscale-ops-strimzi/",
-    "${get_terragrunt_dir()}/../logscale-ops-project/"
+    "${get_terragrunt_dir()}/../logscale-zookeeper/",
+    # "${get_terragrunt_dir()}/../logscale-otel/",
+    "${get_terragrunt_dir()}/../logscale-strimzi/",
+    "${get_terragrunt_dir()}/../logscale-project/"
   ]
 }
 generate "provider" {
@@ -122,12 +127,12 @@ inputs = {
 
   repository = "https://logscale-contrib.github.io/helm-logscale"
 
-  release          = "ops"
+  release          = local.tenant_release
   chart            = "helm-logscale"
   chart_version    = "1.1.8"
-  namespace        = "logscale-ops"
+  namespace        = "logscale${local.tenant_id}"
   create_namespace = false
-  project          = "logscale-ops"
+  project          = "logscale${local.tenant_id}"
 
   values = {
     platform = "aws"
@@ -135,8 +140,8 @@ inputs = {
       s3mode            = "aws"
       kafkaManager      = "strimzi"
       kafkaPrefixEnable = true
-      strimziCluster    = "ops-logscale-strimzi-kafka"
-      fqdn              = "logscale-ops.${local.domain_name}"
+      strimziCluster    = "${local.tenant_release}-logscale-strimzi-kafka"
+      fqdn              = "logscale${local.tenant_id}.${local.domain_name}"
       rootUser          = local.humio_rootUser
       license           = local.humio_license
       image = {
@@ -148,7 +153,7 @@ inputs = {
         entityID       = local.humio_sso_entityID
       }
       serviceAccount = {
-        name = "logscale-ops"
+        name = "logscale${local.tenant_id}"
         annotations = {
           "eks.amazonaws.com/role-arn" = dependency.bucket.outputs.iam_role_arn
         }
@@ -205,7 +210,7 @@ inputs = {
                     key      = "app.kubernetes.io/instance"
                     operator = "In"
                     values = [
-                      "ops-humio-cluster"
+                      "${local.tenant_release}"
                     ]
                   }
                 ]
@@ -228,8 +233,8 @@ inputs = {
           storageClassName = "ebs-gp3-enc"
         }
       }
-      externalzookeeperHostname = "ops-zookeeper-headless:2181"
-      externalKafkaHostname     = "ops-logscale-strimzi-kafka-kafka-bootstrap:9092"
+      externalzookeeperHostname = "${local.tenant_release}-zookeeper-headless:2181"
+      externalKafkaHostname     = "${local.tenant_release}-logscale-strimzi-kafka-kafka-bootstrap:9092"
       service = {
         type = "ClusterIP"
       }
@@ -243,15 +248,14 @@ inputs = {
           "alb.ingress.kubernetes.io/scheme"          = "internet-facing"
           "alb.ingress.kubernetes.io/target-type"     = "ip"
           "alb.ingress.kubernetes.io/group.name"      = "logscale-${local.env}"
-          "external-dns.alpha.kubernetes.io/hostname" = "logscale-ops.${local.domain_name}"
+          "external-dns.alpha.kubernetes.io/hostname" = "logscale${local.tenant_id}.${local.domain_name}"
         }
         className = "alb"
       }
     }
     opentelemetryOperator = {
-      enabled = true
+      enabled = false
     }
-
 
   }
 }
