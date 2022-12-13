@@ -15,7 +15,7 @@ locals {
   }
   eks_addons = {
     base_url = "git::git@github.com:logscale-contrib/terraform-self-managed-logscale-aws-k8s-cluster-addons.git"
-    version  = "?ref=v1.3.7"
+    version  = "?ref=v1.4.0"
   }
 
   aws_k8s_helm_w_iam = {

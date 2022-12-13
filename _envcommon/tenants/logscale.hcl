@@ -145,7 +145,7 @@ inputs = {
       rootUser          = local.humio_rootUser
       license           = local.humio_license
       image = {
-        tag = "1.66.0--SNAPSHOT--build-303191--SHA-a6dd993f992967b6fe9a3117a05b8e62b7b4a3c4"
+        tag = "1.68.0--SNAPSHOT--build-312111--SHA-373d3ce6166cbbe26b82ae3f31c5a41212f7da25"
       }
       sso = {
         idpCertificate = local.humio_sso_idpCertificate
