@@ -18,9 +18,12 @@ include "root" {
 # Include the envcommon configuration for the component. The envcommon configuration contains settings that are common
 # for the component across all environments.
 include "envcommon" {
-  path   = "${dirname(find_in_parent_folders())}/_envcommon/infra/common/k8s-certmanager.hcl"
+  path   = "${dirname(find_in_parent_folders())}/_envcommon/infra/aws/eks-addons.hcl"
   expose = true
 }
+
+
+
 
 # ---------------------------------------------------------------------------------------------------------------------
 # We don't need to override any of the common parameters for this environment, so we don't specify any inputs.

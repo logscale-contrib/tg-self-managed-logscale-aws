@@ -45,11 +45,16 @@ inputs = {
   private_subnets = ["10.0.0.0/20", "10.0.16.0/20", "10.0.32.0/20"]
   public_subnets  = ["10.0.48.0/20", "10.0.64.0/20", "10.0.80.0/20"]
 
-  enable_nat_gateway     = false
+  enable_nat_gateway     = true
   enable_vpn_gateway     = false
-  single_nat_gateway     = false
+  single_nat_gateway     = true
   enable_dns_hostnames   = true
   one_nat_gateway_per_az = false
+
+
+  enable_flow_log                      = true
+  create_flow_log_cloudwatch_iam_role  = true
+  create_flow_log_cloudwatch_log_group = true
 
   # enable_ipv6                     = true
   # assign_ipv6_address_on_creation = true
@@ -60,15 +65,15 @@ inputs = {
   # private_subnet_ipv6_prefixes = [3, 4, 5]
 
   public_subnet_tags = {
-    "kubernetes.io/cluster/logscale-${local.env}"  = "shared"
-    "kubernetes.io/role/elb"                       = "1"
-    "karpenter.sh/discovery/logscale-${local.env}" = "logscale-${local.env}"
+    # "kubernetes.io/cluster/logscale-${local.env}" = "shared"
+    "kubernetes.io/role/elb"                      = "1"
+    # "karpenter.sh/discovery"                      = "logscale-${local.env}"
   }
 
   private_subnet_tags = {
-    "kubernetes.io/cluster/logscale-${local.env}"  = "shared"
-    "kubernetes.io/role/internal-elb"              = "1"
-    "karpenter.sh/discovery/logscale-${local.env}" = "logscale-${local.env}"
+    "kubernetes.io/cluster/logscale-${local.env}" = "shared"
+    "kubernetes.io/role/internal-elb"             = "1"
+    "karpenter.sh/discovery"                      = "logscale-${local.env}"
   }
 
 }

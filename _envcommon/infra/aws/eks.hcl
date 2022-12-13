@@ -17,6 +17,22 @@ terraform {
 # Locals are named constants that are reusable within the configuration.
 # ---------------------------------------------------------------------------------------------------------------------
 locals {
+  # Automatically load account-level variables
+  account_vars = read_terragrunt_config(find_in_parent_folders("account.hcl"))
+
+  # Automatically load region-level variables
+  region_vars = read_terragrunt_config(find_in_parent_folders("region.hcl"))
+
+  # Automatically load environment-level variables
+  environment_vars = read_terragrunt_config(find_in_parent_folders("env.hcl"))
+
+  # Extract out common variables for reuse
+  env = local.environment_vars.locals.environment
+
+  # Extract the variables we need for easy access
+  account_name = local.account_vars.locals.account_name
+  account_id   = local.account_vars.locals.aws_account_id
+  aws_region   = local.region_vars.locals.aws_region
 
   # Expose the base source URL so different versions of the module can be deployed in different environments. This will
   # be used to construct the terraform block in the child terragrunt configurations.
@@ -28,11 +44,6 @@ locals {
 
   aws_admin_arn = local.admin.locals.aws_admin_arn
 
-  # Automatically load environment-level variables
-  environment_vars = read_terragrunt_config(find_in_parent_folders("env.hcl"))
-
-  # Extract out common variables for reuse
-  env = local.environment_vars.locals.environment
 
 }
 
@@ -46,8 +57,10 @@ dependency "vpc" {
 # environments.
 # ---------------------------------------------------------------------------------------------------------------------
 inputs = {
-  uniqueName         = "logscale-${local.env}"
-  aws_admin_arn      = local.aws_admin_arn
-  vpc_id             = dependency.vpc.outputs.vpc_id
-  vpc_public_subnets = dependency.vpc.outputs.public_subnets
+  uniqueName          = "logscale-${local.env}"
+  aws_admin_arn       = local.aws_admin_arn
+  vpc_id              = dependency.vpc.outputs.vpc_id
+  vpc_public_subnets  = dependency.vpc.outputs.public_subnets
+  vpc_private_subnets = dependency.vpc.outputs.private_subnets
+  region              = local.aws_region
 }

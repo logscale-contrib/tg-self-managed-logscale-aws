@@ -50,9 +50,8 @@ dependency "eks" {
 }
 dependencies {
   paths = [
-    "${get_terragrunt_dir()}/../k8s-linkerd-cp",
-    "${get_terragrunt_dir()}/../k8s-ns-operator-otel",
-    "${get_terragrunt_dir()}/../k8s-certmanager/"
+    # "${get_terragrunt_dir()}/../k8s-linkerd-cp",
+    "${get_terragrunt_dir()}/../k8s-ns-operator-otel"
   ]
 }
 generate "provider" {
@@ -88,14 +87,17 @@ inputs = {
   app = {
     chart            = "opentelemetry-operator"
     name             = "cw"
-    version          = "0.15.*"
+    version          = "0.20.*"
     create_namespace = false
     deploy           = 1
   }
 
   values = [<<YAML
+
 replicaCount: 2
 manager:
+#   ports:
+#     webhookPort: 8443  
   serviceMonitor:
     enabled: true
 #   env:
@@ -103,7 +105,22 @@ manager:
 # admissionWebhooks:
 #   certManager: 
 #     enabled: false
-#   create: false    
+#   create: false   
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+kubeRBACProxy:
+  resources:
+    limits:
+      cpu: 500m
+      memory: 128Mi
+    requests:
+      cpu: 500m
+      memory: 128Mi
 YAML
   ]
 }

@@ -49,11 +49,9 @@ dependency "eks" {
 }
 dependencies {
   paths = [
-    "${get_terragrunt_dir()}/../k8s-linkerd-cp",
+    # "${get_terragrunt_dir()}/../k8s-linkerd-cp",
     "${get_terragrunt_dir()}/../k8s-ns-operator-strimzi",
-    "${get_terragrunt_dir()}/../k8s-operator-otel",
-    "${get_terragrunt_dir()}/../k8s-prom-crds/",
-    "${get_terragrunt_dir()}/../k8s-certmanager/"
+    "${get_terragrunt_dir()}/../k8s-operator-otel"
   ]
 }
 generate "provider" {
@@ -89,7 +87,7 @@ inputs = {
   app = {
     name             = "cw"
     chart            = "strimzi-kafka-operator"
-    version          = "0.31.*"
+    version          = "0.32.*"
     create_namespace = false
     deploy           = 1
   }
@@ -98,6 +96,13 @@ inputs = {
 
   values = [<<EOF
 watchAnyNamespace: true
+resources:
+  requests:
+    cpu: 1000m
+    memory: 256Mi
+  limits:
+    cpu: 1000m
+    memory: 256Mi
 topologySpreadConstraints:
   - maxSkew: 1
     topologyKey: topology.kubernetes.io/zone

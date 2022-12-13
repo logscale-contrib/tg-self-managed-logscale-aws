@@ -53,10 +53,8 @@ dependency "acm_ui" {
 
 dependencies {
   paths = [
-    "${get_terragrunt_dir()}/../k8s-linkerd-cp",
-    "${get_terragrunt_dir()}/../k8s-ns-monitoring",
-    "${get_terragrunt_dir()}/../../aws/infra/eks-alb/",
-    "${get_terragrunt_dir()}/../k8s-prom-crds/"
+    # "${get_terragrunt_dir()}/../k8s-linkerd-cp",
+    "${get_terragrunt_dir()}/../k8s-ns-monitoring"
   ]
 }
 generate "provider" {
@@ -174,6 +172,30 @@ inputs = {
         resources = {
           requests = {
             storage = "50Gi"
+          }
+        }
+      }
+    }
+    "prometheus-node-exporter" = {
+      affinity = {
+        nodeAffinity = {
+          requiredDuringSchedulingIgnoredDuringExecution = {
+            nodeSelectorTerms = [
+              {
+                matchExpressions = [
+                  {
+                    key      = "eks.amazonaws.com/compute-type"
+                    operator = "NotIn"
+                    values   = ["fargate"]
+                  },
+                  {
+                    key      = "kubernetes.io/os"
+                    operator = "In"
+                    values   = ["linux"]
+                  }
+                ]
+              }
+            ]
           }
         }
       }

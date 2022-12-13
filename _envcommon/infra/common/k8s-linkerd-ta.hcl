@@ -53,8 +53,7 @@ dependencies {
     "../k8s-linkerd-ns-linkerd-cni",
     "../k8s-linkerd-ns-linkerd-jaeger",
     "../k8s-linkerd-ns-linkerd-viz",
-    "../k8s-linkerd-ns-linkerd",
-    "${get_terragrunt_dir()}/../k8s-certmanager/"
+    "../k8s-linkerd-ns-linkerd"
   ]
 }
 generate "provider" {

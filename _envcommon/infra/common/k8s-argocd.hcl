@@ -58,9 +58,6 @@ dependency "acm_ui" {
 }
 dependencies {
   paths = [
-    "${get_terragrunt_dir()}/../../aws/infra/eks-alb/",
-    "${get_terragrunt_dir()}/../../aws/infra/eks-externaldns/",
-    "${get_terragrunt_dir()}/../k8s-prom-crds/",
     "${get_terragrunt_dir()}/../k8s-ns-argocd/"
   ]
 }
@@ -97,7 +94,7 @@ inputs = {
     create_namespace = true
 
     chart   = "argo-cd"
-    version = "5.6.1"
+    version = "5.16.1"
 
     wait   = true
     deploy = 1

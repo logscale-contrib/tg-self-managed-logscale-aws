@@ -49,12 +49,9 @@ dependency "eks" {
 }
 dependencies {
   paths = [
-    "${get_terragrunt_dir()}/../k8s-linkerd-cp",
+    # "${get_terragrunt_dir()}/../k8s-linkerd-cp",
     "${get_terragrunt_dir()}/../k8s-ns-operator-logscale",
-    "${get_terragrunt_dir()}/../k8s-operator-otel",
-    "${get_terragrunt_dir()}/../../aws/infra/eks-alb/",
-    "${get_terragrunt_dir()}/../k8s-prom-crds/",
-    "${get_terragrunt_dir()}/../k8s-certmanager/"
+    "${get_terragrunt_dir()}/../k8s-operator-otel"
   ]
 }
 generate "provider" {
@@ -95,9 +92,10 @@ inputs = {
     deploy           = 1
   }
   values = [<<EOF
-  prometheus:
-    serviceMonitor:
-      enabled: true  
+prometheus:
+  serviceMonitor:
+    enabled: true  
+
 EOF    
   ]
 
