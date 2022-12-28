@@ -124,7 +124,7 @@ inputs = {
 
   release          = "ops"
   chart            = "helm-logscale"
-  chart_version    = "1.1.8"
+  chart_version    = "1.2.0"
   namespace        = "logscale-ops"
   create_namespace = false
   project          = "logscale-ops"
@@ -140,7 +140,7 @@ inputs = {
       rootUser          = local.humio_rootUser
       license           = local.humio_license
       image = {
-        tag = "1.68.0--SNAPSHOT--build-312111--SHA-373d3ce6166cbbe26b82ae3f31c5a41212f7da25"
+        tag = "1.70.0--SNAPSHOT--build-323434--SHA-dfa77220c22755bc0f8dee124ef548e8c0d740b1"
       }
       sso = {
         idpCertificate = local.humio_sso_idpCertificate

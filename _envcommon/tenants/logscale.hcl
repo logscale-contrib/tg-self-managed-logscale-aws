@@ -128,8 +128,8 @@ inputs = {
   repository = "https://logscale-contrib.github.io/helm-logscale"
 
   release          = local.tenant_release
-  chart            = "helm-logscale"
-  chart_version    = "1.1.8"
+  chart            = "logscale"
+  chart_version    = "3.0.0-next.18"
   namespace        = "logscale${local.tenant_id}"
   create_namespace = false
   project          = "logscale${local.tenant_id}"
@@ -142,10 +142,12 @@ inputs = {
       kafkaPrefixEnable = true
       strimziCluster    = "${local.tenant_release}-logscale-strimzi-kafka"
       fqdn              = "logscale${local.tenant_id}.${local.domain_name}"
+      fqdnInputs        = "logscale${local.tenant_id}-inputs.${local.domain_name}"
       rootUser          = local.humio_rootUser
       license           = local.humio_license
       image = {
-        tag = "1.68.0--SNAPSHOT--build-312111--SHA-373d3ce6166cbbe26b82ae3f31c5a41212f7da25"
+        tag = "1.70.0--SNAPSHOT--build-323434--SHA-dfa77220c22755bc0f8dee124ef548e8c0d740b1"
+        # tag = "1.69.0--SNAPSHOT--build-316831--SHA-8805a37ec2d79955f39056d9d6fc5368e8f02a6b"
       }
       sso = {
         idpCertificate = local.humio_sso_idpCertificate
@@ -248,7 +250,7 @@ inputs = {
           "alb.ingress.kubernetes.io/scheme"          = "internet-facing"
           "alb.ingress.kubernetes.io/target-type"     = "ip"
           "alb.ingress.kubernetes.io/group.name"      = "logscale-${local.env}"
-          "external-dns.alpha.kubernetes.io/hostname" = "logscale${local.tenant_id}.${local.domain_name}"
+          "external-dns.alpha.kubernetes.io/hostname" = "logscale${local.tenant_id}.${local.domain_name},logscale${local.tenant_id}-inputs.${local.domain_name}"
         }
         className = "alb"
       }
