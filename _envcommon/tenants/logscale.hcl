@@ -127,7 +127,7 @@ inputs = {
 
   release          = local.tenant_release
   chart            = "logscale"
-  chart_version    = "3.0.0-next.26"
+  chart_version    = "3.0.0"
   namespace        = "logscale${local.tenant_id}"
   create_namespace = false
   project          = "logscale${local.tenant_id}"

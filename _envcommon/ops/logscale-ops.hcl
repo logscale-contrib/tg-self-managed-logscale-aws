@@ -123,7 +123,7 @@ inputs = {
 
   release          = "ops"
   chart            = "logscale"
-  chart_version    = "3.0.0-next.26"
+  chart_version    = "3.0.0"
   namespace        = "logscale-ops"
   create_namespace = false
   project          = "logscale-ops"
