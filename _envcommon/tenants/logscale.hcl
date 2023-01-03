@@ -69,8 +69,6 @@ dependency "bucket" {
 }
 dependencies {
   paths = [
-    "${get_terragrunt_dir()}/../logscale-zookeeper/",
-    # "${get_terragrunt_dir()}/../logscale-otel/",
     "${get_terragrunt_dir()}/../logscale-strimzi/",
     "${get_terragrunt_dir()}/../logscale-project/"
   ]
@@ -129,7 +127,7 @@ inputs = {
 
   release          = local.tenant_release
   chart            = "logscale"
-  chart_version    = "3.0.0-next.18"
+  chart_version    = "3.0.0-next.26"
   namespace        = "logscale${local.tenant_id}"
   create_namespace = false
   project          = "logscale${local.tenant_id}"
@@ -235,7 +233,6 @@ inputs = {
           storageClassName = "ebs-gp3-enc"
         }
       }
-      externalzookeeperHostname = "${local.tenant_release}-zookeeper-headless:2181"
       externalKafkaHostname     = "${local.tenant_release}-logscale-strimzi-kafka-kafka-bootstrap:9092"
       service = {
         type = "ClusterIP"

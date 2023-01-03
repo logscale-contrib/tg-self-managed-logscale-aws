@@ -64,7 +64,6 @@ dependency "bucket" {
 }
 dependencies {
   paths = [
-    "${get_terragrunt_dir()}/../logscale-ops-zookeeper/",
     "${get_terragrunt_dir()}/../logscale-ops-otel/",
     "${get_terragrunt_dir()}/../logscale-ops-strimzi/",
     "${get_terragrunt_dir()}/../logscale-ops-project/"
@@ -123,8 +122,8 @@ inputs = {
   repository = "https://logscale-contrib.github.io/helm-logscale"
 
   release          = "ops"
-  chart            = "helm-logscale"
-  chart_version    = "1.2.0"
+  chart            = "logscale"
+  chart_version    = "3.0.0-next.26"
   namespace        = "logscale-ops"
   create_namespace = false
   project          = "logscale-ops"
@@ -137,6 +136,7 @@ inputs = {
       kafkaPrefixEnable = true
       strimziCluster    = "ops-logscale-strimzi-kafka"
       fqdn              = "logscale-ops.${local.domain_name}"
+      fqdnInputs        = "logscale-ops-inputs.${local.domain_name}"
       rootUser          = local.humio_rootUser
       license           = local.humio_license
       image = {
@@ -228,7 +228,6 @@ inputs = {
           storageClassName = "ebs-gp3-enc"
         }
       }
-      externalzookeeperHostname = "ops-zookeeper-headless:2181"
       externalKafkaHostname     = "ops-logscale-strimzi-kafka-kafka-bootstrap:9092"
       service = {
         type = "ClusterIP"
@@ -243,7 +242,7 @@ inputs = {
           "alb.ingress.kubernetes.io/scheme"          = "internet-facing"
           "alb.ingress.kubernetes.io/target-type"     = "ip"
           "alb.ingress.kubernetes.io/group.name"      = "logscale-${local.env}"
-          "external-dns.alpha.kubernetes.io/hostname" = "logscale-ops.${local.domain_name}"
+          "external-dns.alpha.kubernetes.io/hostname" = "logscale-ops.${local.domain_name},logscale-ops-inputs.${local.domain_name}"
         }
         className = "alb"
       }

@@ -162,6 +162,7 @@ kafka:
     #Must be SSD or NVME like storage IOPs is the primary node constraint
     class: ebs-gp3-enc
 zookeeper:
+  replicas: 3
   # affinity:
   #   nodeAffinity:
   #     requiredDuringSchedulingIgnoredDuringExecution:
