@@ -95,14 +95,19 @@ inputs = {
 
   release          = "ops"
   chart            = "otel-logscale"
-  chart_version    = "1.0.*"
+  chart_version    = "2.0.*"
   namespace        = "logscale-ops"
   create_namespace = false
   project          = "logscale-ops"
 
   values = {
-    humioservice      = "http://ops-helm-logscale:8080/services/collector"
-    humiosecretprefix = "ops-helm-logscale"
-
+    humioservice      = "http://ops-logscale:8080/api/v1/ingest/otlp"
+    humiosecretprefix = "ops-logscale"
+    components = {
+      app = true
+      cluster = true
+      nodes = true
+      serviceaccount = true
+    }
   }
 }

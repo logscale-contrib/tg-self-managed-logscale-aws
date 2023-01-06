@@ -70,6 +70,7 @@ dependency "bucket" {
 dependencies {
   paths = [
     "${get_terragrunt_dir()}/../logscale-strimzi/",
+    "${get_terragrunt_dir()}/../logscale-otel/",
     "${get_terragrunt_dir()}/../logscale-project/"
   ]
 }
@@ -127,7 +128,7 @@ inputs = {
 
   release          = local.tenant_release
   chart            = "logscale"
-  chart_version    = "3.0.0"
+  chart_version    = "3.0.2"
   namespace        = "logscale${local.tenant_id}"
   create_namespace = false
   project          = "logscale${local.tenant_id}"
@@ -247,7 +248,16 @@ inputs = {
           "alb.ingress.kubernetes.io/scheme"          = "internet-facing"
           "alb.ingress.kubernetes.io/target-type"     = "ip"
           "alb.ingress.kubernetes.io/group.name"      = "logscale-${local.env}"
-          "external-dns.alpha.kubernetes.io/hostname" = "logscale${local.tenant_id}.${local.domain_name},logscale${local.tenant_id}-inputs.${local.domain_name}"
+          "external-dns.alpha.kubernetes.io/hostname" = "logscale${local.tenant_id}.${local.domain_name}"
+        }
+        annotationsInputs = {
+          "alb.ingress.kubernetes.io/certificate-arn" = dependency.acm_ui.outputs.acm_certificate_arn
+          "alb.ingress.kubernetes.io/listen-ports"    = "[{\"HTTP\": 80}, {\"HTTPS\": 443}]"
+          "alb.ingress.kubernetes.io/ssl-redirect"    = "443"
+          "alb.ingress.kubernetes.io/scheme"          = "internet-facing"
+          "alb.ingress.kubernetes.io/target-type"     = "ip"
+          "alb.ingress.kubernetes.io/group.name"      = "logscale-${local.env}"
+          "external-dns.alpha.kubernetes.io/hostname" = "logscale${local.tenant_id}-inputs.${local.domain_name}"
         }
         className = "alb"
       }

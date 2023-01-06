@@ -123,7 +123,7 @@ inputs = {
 
   release          = "ops"
   chart            = "logscale"
-  chart_version    = "3.0.0"
+  chart_version    = "3.0.2"
   namespace        = "logscale-ops"
   create_namespace = false
   project          = "logscale-ops"
@@ -242,7 +242,16 @@ inputs = {
           "alb.ingress.kubernetes.io/scheme"          = "internet-facing"
           "alb.ingress.kubernetes.io/target-type"     = "ip"
           "alb.ingress.kubernetes.io/group.name"      = "logscale-${local.env}"
-          "external-dns.alpha.kubernetes.io/hostname" = "logscale-ops.${local.domain_name},logscale-ops-inputs.${local.domain_name}"
+          "external-dns.alpha.kubernetes.io/hostname" = "logscale-ops.${local.domain_name}"
+        }
+        annotationsInputs = {
+          "alb.ingress.kubernetes.io/certificate-arn" = dependency.acm_ui.outputs.acm_certificate_arn
+          "alb.ingress.kubernetes.io/listen-ports"    = "[{\"HTTP\": 80}, {\"HTTPS\": 443}]"
+          "alb.ingress.kubernetes.io/ssl-redirect"    = "443"
+          "alb.ingress.kubernetes.io/scheme"          = "internet-facing"
+          "alb.ingress.kubernetes.io/target-type"     = "ip"
+          "alb.ingress.kubernetes.io/group.name"      = "logscale-${local.env}"
+          "external-dns.alpha.kubernetes.io/hostname" = "logscale-ops-inputs.${local.domain_name}"
         }
         className = "alb"
       }
